@@ -38,11 +38,11 @@ export const ZoneDetailModal: React.FC<ZoneDetailModalProps> = ({ zone, reading,
 
   const handleOpenAuxiliaryExit = () => {
     triggerAlert({
-      event_id: activeEventId,
+      event_id: activeEventId || 'e1111111-1111-1111-1111-111111111111',
       alert_type: 'gate_directive',
       zone_id: zone.id,
       message: `ACTION: Open relief exits near ${zone.name} to ease flow.`,
-      severity: 'warning',
+      severity: 'critical',
       target_audience: 'security',
       auto_generated: false,
       acknowledged_by: null,
@@ -53,16 +53,29 @@ export const ZoneDetailModal: React.FC<ZoneDetailModalProps> = ({ zone, reading,
 
   const handleDispatchSecurity = () => {
     createIncident({
-      event_id: activeEventId,
+      event_id: activeEventId || 'e1111111-1111-1111-1111-111111111111',
       zone_id: zone.id,
       incident_type: 'crush_risk',
       severity: reading.density_per_sqm >= 4.5 ? 'high' : 'medium',
       title: `Security Dispatched to ${zone.name}`,
-      description: `Team dispatched to monitor flow and assist attendees.`,
+      description: `Team dispatched to monitor flow and assist attendees (${reading.density_per_sqm.toFixed(1)} ppl/m²).`,
       reported_by: currentUser.id,
       assigned_to: '03333333-3333-3333-3333-333333333333',
       status: 'responding',
     });
+
+    triggerAlert({
+      event_id: activeEventId || 'e1111111-1111-1111-1111-111111111111',
+      alert_type: 'gate_directive',
+      zone_id: zone.id,
+      message: `DISPATCH: Security unit deployed to ${zone.name}.`,
+      severity: 'warning',
+      target_audience: 'security',
+      auto_generated: false,
+      acknowledged_by: null,
+      acknowledged_at: null,
+    });
+
     onClose();
   };
 
