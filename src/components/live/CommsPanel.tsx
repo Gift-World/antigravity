@@ -5,13 +5,11 @@ import { Button } from '@/components/ui/Button';
 import { TargetAudience } from '@/types/database';
 import {
   Send,
-  Radio,
   Shield,
   Stethoscope,
   Users,
-  AlertTriangle,
   CheckCircle2,
-  Volume2,
+  Bell,
 } from 'lucide-react';
 
 export const CommsPanel: React.FC = () => {
@@ -26,23 +24,23 @@ export const CommsPanel: React.FC = () => {
 
   const templates = [
     {
-      label: '🚨 Egress Directive',
-      text: 'TACTICAL DIRECTIVE: Open relief gates and guide crowd towards Eastern corridor.',
+      label: '🚪 Open Relief Gates',
+      text: 'ACTION REQUIRED: Open relief gates at Gate A & B to ease floor pressure.',
       aud: 'security' as TargetAudience,
     },
     {
-      label: '🏥 Medical Dispatch',
-      text: 'PARAMEDIC DISPATCH: St. John First Aid unit proceed immediately to Sector 6.',
+      label: '🏥 Medical Assistance',
+      text: 'FIRST AID NEEDED: Red Cross paramedic unit proceed to Main Floor North.',
       aud: 'medical' as TargetAudience,
     },
     {
-      label: '⚠️ Weather / Slow Flow',
-      text: 'ATTENDEE NOTICE: Keep exits clear and move steadily towards designated exit routes.',
+      label: '📢 Clear Exit Routes',
+      text: 'ATTENDEE NOTICE: Keep all stairs and exit pathways clear for safe movement.',
       aud: 'all' as TargetAudience,
     },
     {
-      label: '🛡️ Guardian Anti-Theft',
-      text: 'SECURITY ALERT: High theft risk in Stage Pit. Deploy plainclothes patrol.',
+      label: '🛡️ Phone Theft Alert',
+      text: 'SECURITY NOTICE: Increased pickpocketing reported in Main Floor front area.',
       aud: 'security' as TargetAudience,
     },
   ];
@@ -69,124 +67,100 @@ export const CommsPanel: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-3.5 bg-ag-surface rounded-[8px] border border-ag-border text-ag-text-primary">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-ag-border mb-3">
-        <div className="flex items-center gap-2">
-          <Radio className="w-4 h-4 text-ag-blue animate-pulse" />
-          <h4 className="font-display font-bold text-xs uppercase tracking-wider text-ag-text-primary">
-            TACTICAL COMMS & BROADCASTER
-          </h4>
-        </div>
-        {isSent && (
-          <span className="text-xs font-mono text-ag-green flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Broadcast Sent
-          </span>
-        )}
-      </div>
+    <div className="h-full flex flex-col justify-between space-y-4 font-sans">
+      <form onSubmit={handleSend} className="space-y-4">
+        {/* Target Recipient Selector */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-ag-text-secondary">
+            Who should receive this message?
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setAudience('security')}
+              className={`p-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 border transition-colors ${
+                audience === 'security'
+                  ? 'bg-ag-yellow/20 border-ag-yellow text-ag-yellow'
+                  : 'bg-ag-black border-ag-border text-ag-text-secondary hover:text-white'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Security</span>
+            </button>
 
-      <form onSubmit={handleSend} className="flex-1 flex flex-col justify-between space-y-3">
-        <div className="space-y-3">
-          {/* Target Audience Selector */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
-              Target Audience
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setAudience('security')}
-                className={`p-2 rounded text-xs font-mono flex items-center justify-center gap-1.5 border transition-colors ${
-                  audience === 'security'
-                    ? 'bg-ag-yellow-dim border-ag-yellow text-ag-yellow font-bold'
-                    : 'bg-ag-black/50 border-ag-border text-ag-text-secondary hover:text-white'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5" /> All Security
-              </button>
+            <button
+              type="button"
+              onClick={() => setAudience('medical')}
+              className={`p-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 border transition-colors ${
+                audience === 'medical'
+                  ? 'bg-ag-red/20 border-ag-red text-ag-red'
+                  : 'bg-ag-black border-ag-border text-ag-text-secondary hover:text-white'
+              }`}
+            >
+              <Stethoscope className="w-3.5 h-3.5" />
+              <span>Medics</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setAudience('medical')}
-                className={`p-2 rounded text-xs font-mono flex items-center justify-center gap-1.5 border transition-colors ${
-                  audience === 'medical'
-                    ? 'bg-ag-red-dim border-ag-red text-ag-red font-bold'
-                    : 'bg-ag-black/50 border-ag-border text-ag-text-secondary hover:text-white'
-                }`}
-              >
-                <Stethoscope className="w-3.5 h-3.5" /> All Medical
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAudience('attendees')}
-                className={`p-2 rounded text-xs font-mono flex items-center justify-center gap-1.5 border transition-colors ${
-                  audience === 'attendees'
-                    ? 'bg-ag-blue-dim border-ag-blue text-ag-blue font-bold'
-                    : 'bg-ag-black/50 border-ag-border text-ag-text-secondary hover:text-white'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" /> Zone Attendees
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAudience('all')}
-                className={`p-2 rounded text-xs font-mono flex items-center justify-center gap-1.5 border transition-colors ${
-                  audience === 'all'
-                    ? 'bg-ag-red/30 border-ag-red text-white font-bold'
-                    : 'bg-ag-black/50 border-ag-border text-ag-text-secondary hover:text-white'
-                }`}
-              >
-                <Volume2 className="w-3.5 h-3.5" /> Everyone (Public)
-              </button>
-            </div>
-          </div>
-
-          {/* Quick Preset Templates */}
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wider text-ag-text-muted mb-1.5 font-mono">
-              Quick Templates
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {templates.map((tpl, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    setMessage(tpl.text);
-                    setAudience(tpl.aud);
-                  }}
-                  className="text-[11px] font-mono px-2 py-1 rounded bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border text-ag-text-secondary hover:text-white transition-colors"
-                >
-                  {tpl.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Message input */}
-          <div>
-            <textarea
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type tactical directive or safety message to broadcast..."
-              className="w-full bg-ag-black/70 border border-ag-border text-ag-text-primary rounded-[6px] px-3 py-2 text-xs focus:outline-none focus:border-ag-blue placeholder:text-ag-text-muted font-sans"
-              required
-            />
+            <button
+              type="button"
+              onClick={() => setAudience('all')}
+              className={`p-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 border transition-colors ${
+                audience === 'all'
+                  ? 'bg-ag-blue/20 border-ag-blue text-ag-blue'
+                  : 'bg-ag-black border-ag-border text-ag-text-secondary hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Everyone</span>
+            </button>
           </div>
         </div>
 
-        {/* Big SEND button */}
+        {/* Quick 1-Tap Message Templates */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-ag-text-secondary">
+            Quick Message Templates
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {templates.map((t, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setMessage(t.text);
+                  setAudience(t.aud);
+                }}
+                className="p-2 rounded-lg bg-ag-black hover:bg-ag-surface-hover border border-ag-border text-left text-xs text-ag-text-secondary hover:text-white transition-colors truncate"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Message Input */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-ag-text-secondary">
+            Message
+          </label>
+          <textarea
+            rows={3}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message here..."
+            className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-3 text-sm text-white focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Send Button */}
         <Button
           type="submit"
           variant="primary"
-          size="lg"
-          className="w-full text-sm font-bold uppercase tracking-wider shadow-lg shadow-ag-blue/20"
+          className="w-full h-11 font-bold shadow-lg shadow-ag-blue/20"
           rightIcon={<Send className="w-4 h-4" />}
+          disabled={!message.trim()}
         >
-          BROADCAST DIRECTIVE
+          {isSent ? 'Message Sent!' : 'Send Message'}
         </Button>
       </form>
     </div>

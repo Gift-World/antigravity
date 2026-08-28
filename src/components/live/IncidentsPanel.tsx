@@ -1,7 +1,7 @@
 // src/components/live/IncidentsPanel.tsx
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { Incident, IncidentSeverity, IncidentStatus, IncidentType } from '@/types/database';
+import { Incident, IncidentSeverity, IncidentType } from '@/types/database';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -9,14 +9,10 @@ import { Input } from '@/components/ui/Input';
 import {
   AlertTriangle,
   Plus,
-  Clock,
   Shield,
   HeartPulse,
   Smartphone,
-  UserCheck,
   CheckCircle2,
-  ShieldAlert,
-  Flame,
 } from 'lucide-react';
 
 export const IncidentsPanel: React.FC = () => {
@@ -53,42 +49,21 @@ export const IncidentsPanel: React.FC = () => {
     setIsCreateModalOpen(false);
   };
 
-  const getSeverityBadgeVariant = (sev: IncidentSeverity) => {
-    if (sev === 'critical') return 'red';
-    if (sev === 'high') return 'orange';
-    if (sev === 'medium') return 'yellow';
-    return 'neutral';
-  };
-
-  const getTypeIcon = (type: IncidentType) => {
-    switch (type) {
-      case 'phone_theft':
-        return <Smartphone className="w-3.5 h-3.5 text-ag-yellow" />;
-      case 'medical':
-        return <HeartPulse className="w-3.5 h-3.5 text-ag-red" />;
-      case 'crush_risk':
-      case 'stampede':
-        return <AlertTriangle className="w-3.5 h-3.5 text-ag-red" />;
-      default:
-        return <Shield className="w-3.5 h-3.5 text-ag-blue" />;
-    }
-  };
-
   return (
-    <div className="h-full flex flex-col p-3.5 bg-ag-surface rounded-[8px] border border-ag-border text-ag-text-primary">
+    <div className="h-full flex flex-col space-y-3 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-ag-border mb-3">
+      <div className="flex items-center justify-between pb-2 border-b border-ag-border">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-ag-yellow" />
-          <h4 className="font-display font-bold text-xs uppercase tracking-wider text-ag-text-primary">
-            ACTIVE TACTICAL INCIDENTS
+          <Shield className="w-4 h-4 text-ag-yellow" />
+          <h4 className="font-bold text-xs uppercase tracking-wider text-white">
+            Incidents Log
           </h4>
         </div>
         <Button
           size="sm"
-          variant="danger"
+          variant="outline"
           onClick={() => setIsCreateModalOpen(true)}
-          className="text-xs h-7 px-2.5 font-bold uppercase"
+          className="text-xs h-8 px-3"
           leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
           Report Incident
@@ -96,69 +71,55 @@ export const IncidentsPanel: React.FC = () => {
       </div>
 
       {/* Incidents List */}
-      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-3 pr-1">
         {incidents.length === 0 ? (
           <div className="h-40 flex flex-col items-center justify-center text-ag-text-muted text-xs">
             <CheckCircle2 className="w-8 h-8 text-ag-green mb-2 opacity-60" />
-            <span>No active incidents. Stadium grounds nominal.</span>
+            <span>No incidents reported. All clear!</span>
           </div>
         ) : (
-          incidents.map((incident) => {
-            const assignedUser = users.find((u) => u.id === incident.assigned_to);
-            const zone = zones.find((z) => z.id === incident.zone_id);
+          incidents.map((inc) => {
+            const isResolved = inc.status === 'resolved';
 
             return (
               <div
-                key={incident.id}
-                className="p-3 bg-ag-black/50 rounded-[6px] border border-ag-border hover:border-ag-border/80 transition-colors"
+                key={inc.id}
+                className={`p-3.5 rounded-xl border space-y-2 transition-all ${
+                  isResolved
+                    ? 'bg-ag-surface/40 border-ag-border opacity-70'
+                    : 'bg-ag-black border-ag-border hover:border-ag-border-focus'
+                }`}
               >
-                {/* Header */}
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    {getTypeIcon(incident.incident_type)}
-                    <Badge variant={getSeverityBadgeVariant(incident.severity)} size="sm">
-                      {incident.severity}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={inc.severity === 'high' ? 'red' : 'yellow'} size="sm">
+                      {inc.severity.toUpperCase()}
                     </Badge>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-ag-text-secondary">
-                      {incident.incident_type.replace('_', ' ')}
-                    </span>
+                    <span className="font-bold text-white text-xs">{inc.title}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-ag-text-muted flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                  <span className="text-[10px] text-ag-text-muted">
+                    {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
 
-                {/* Title & Description */}
-                <h5 className="text-xs font-semibold text-ag-text-primary mb-1">{incident.title}</h5>
-                {incident.description && (
-                  <p className="text-[11px] text-ag-text-secondary leading-snug mb-2">
-                    {incident.description}
-                  </p>
-                )}
+                <p className="text-xs text-ag-text-secondary leading-relaxed">{inc.description}</p>
 
-                {/* Footer Controls */}
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-ag-border/50 text-[11px]">
-                  {/* Zone & Assignee */}
-                  <div className="flex items-center gap-1.5 text-ag-text-muted font-mono text-[10px]">
-                    <span>📍 {zone?.name.split('(')[0] || 'Stadium'}</span>
-                    <span>•</span>
-                    <span className="text-ag-blue">
-                      👤 {assignedUser ? assignedUser.full_name.split(' ')[0] : 'Unassigned'}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between pt-2 border-t border-ag-border/50">
+                  <span className="text-[11px] text-ag-text-muted">
+                    Status: <strong className="text-white uppercase">{inc.status}</strong>
+                  </span>
 
-                  {/* Status Dropdown */}
-                  <select
-                    value={incident.status}
-                    onChange={(e) => updateIncidentStatus(incident.id, e.target.value as IncidentStatus)}
-                    className="bg-ag-surface border border-ag-border text-ag-text-primary text-[11px] rounded px-2 py-0.5 focus:outline-none focus:border-ag-blue font-mono"
-                  >
-                    <option value="open">Open</option>
-                    <option value="acknowledged">Acknowledged</option>
-                    <option value="responding">Responding</option>
-                    <option value="resolved">Resolved</option>
-                  </select>
+                  {!isResolved && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateIncidentStatus(inc.id, 'resolved')}
+                      className="text-xs h-7 px-2.5 text-ag-green hover:bg-ag-green/10 border-ag-green/30"
+                    >
+                      Mark Resolved
+                    </Button>
+                  )}
                 </div>
               </div>
             );
@@ -166,67 +127,58 @@ export const IncidentsPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Create Incident Modal */}
+      {/* Report Incident Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Report Tactical Incident"
-        description="Dispatch response units to crowd surge, phone theft, medical or security incidents"
+        title="Report New Incident"
       >
-        <form onSubmit={handleCreateIncident} className="space-y-4">
+        <form onSubmit={handleCreateIncident} className="space-y-4 font-sans">
           <Input
             label="Incident Title"
-            placeholder="e.g. Crowd surging towards Gate A barrier"
+            placeholder="e.g. Broken gate latch, Attendee feeling dizzy"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             required
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
-                Category
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ag-text-secondary">Type</label>
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as IncidentType)}
-                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
+                className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-2.5 text-xs text-white"
               >
-                <option value="crush_risk">Crush Risk / Surge</option>
-                <option value="phone_theft">Phone Theft (Guardian)</option>
-                <option value="medical">Medical Emergency</option>
-                <option value="gate_breach">Gate Breach</option>
-                <option value="fight">Altercation / Fight</option>
-                <option value="capacity_exceeded">Capacity Exceeded</option>
-                <option value="other">Other Incident</option>
+                <option value="crush_risk">Crowd Pressure</option>
+                <option value="medical">Medical / First Aid</option>
+                <option value="phone_theft">Phone Theft</option>
+                <option value="gate_breach">Gate Issue</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
-                Severity Level
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ag-text-secondary">Severity</label>
               <select
                 value={newSeverity}
                 onChange={(e) => setNewSeverity(e.target.value as IncidentSeverity)}
-                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
+                className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-2.5 text-xs text-white"
               >
-                <option value="critical">Critical (Immediate Danger)</option>
-                <option value="high">High Priority</option>
-                <option value="medium">Medium</option>
                 <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
-              Venue Zone
-            </label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ag-text-secondary">Zone / Location</label>
             <select
               value={newZoneId}
               onChange={(e) => setNewZoneId(e.target.value)}
-              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
+              className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-2.5 text-xs text-white"
             >
               {zones.map((z) => (
                 <option key={z.id} value={z.id}>
@@ -236,25 +188,28 @@ export const IncidentsPanel: React.FC = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
-              Situation Notes
-            </label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ag-text-secondary">Details</label>
             <textarea
-              rows={3}
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Describe crowd movement, suspect description, or triage notes..."
-              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue placeholder:text-ag-text-muted font-sans"
+              placeholder="Describe the situation..."
+              rows={3}
+              className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-3 text-xs text-white"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-ag-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCreateModalOpen(false)}
+              className="h-10"
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="danger">
-              Log & Dispatch Incident
+            <Button type="submit" variant="primary" className="h-10 px-6 font-bold">
+              Submit Report
             </Button>
           </div>
         </form>

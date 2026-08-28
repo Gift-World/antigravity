@@ -47,8 +47,8 @@ export const Login: React.FC = () => {
           <Link to="/" className="inline-flex items-center gap-2.5">
             <AntigravityLogo size="md" />
           </Link>
-          <p className="text-xs text-ag-text-secondary font-mono">
-            Mission Control & Stadium Operations Portal
+          <p className="text-xs text-ag-text-secondary">
+            Event Safety & Operations Portal
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export const Login: React.FC = () => {
             />
 
             {errorMessage && (
-              <div className="text-xs font-mono text-ag-red bg-ag-red-dim p-2.5 rounded border border-ag-red/30">
+              <div className="text-xs text-ag-red bg-ag-red-dim p-2.5 rounded border border-ag-red/30">
                 {errorMessage}
               </div>
             )}
@@ -89,7 +89,7 @@ export const Login: React.FC = () => {
               className="w-full text-sm font-bold mt-2 shadow-lg shadow-ag-blue/20"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              Sign In to Command Center
+              Sign In to Dashboard
             </Button>
           </form>
 

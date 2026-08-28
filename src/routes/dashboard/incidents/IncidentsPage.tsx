@@ -75,11 +75,9 @@ export const IncidentsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-bold text-xl text-white">
-            Tactical Incident Dispatch & Triage
-          </h2>
-          <p className="text-xs text-ag-text-secondary font-mono">
-            Real-time responder logging for crowd surges, medical emergencies, and Guardian phone theft
+          <h2 className="font-display font-bold text-2xl text-white">Incidents Log</h2>
+          <p className="text-xs text-ag-text-secondary">
+            Live incident log, responder dispatch, and resolution tracking
           </p>
         </div>
 

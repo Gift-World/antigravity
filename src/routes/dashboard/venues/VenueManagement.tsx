@@ -7,17 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { formatNumber } from '@/lib/utils';
 import {
   MapPin,
   Plus,
   Building,
-  Layers,
   Users,
-  Compass,
-  ArrowRight,
-  Shield,
-  Edit2,
-  Trash2,
+  DoorOpen,
 } from 'lucide-react';
 
 export const VenueManagement: React.FC = () => {
@@ -71,13 +67,13 @@ export const VenueManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-bold text-xl text-white">Venues & Sector Topography</h2>
-          <p className="text-xs text-ag-text-secondary font-mono">
-            Configure stadium sectors, turnstiles, medical triage points, and spatial capacity boundaries
+          <h2 className="font-display font-bold text-2xl text-white">Venues & Zones</h2>
+          <p className="text-xs text-ag-text-secondary">
+            Manage your event venues, gate entrances, floor sections, and capacities
           </p>
         </div>
 
@@ -88,12 +84,12 @@ export const VenueManagement: React.FC = () => {
           leftIcon={<Plus className="w-4 h-4" />}
           className="text-xs font-bold"
         >
-          Add Venue Template
+          Add Venue
         </Button>
       </div>
 
       {/* Venues Selector Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {venues.map((venue) => {
           const isSelected = venue.id === selectedVenue.id;
           return (
@@ -101,99 +97,74 @@ export const VenueManagement: React.FC = () => {
               key={venue.id}
               hover
               onClick={() => setSelectedVenueId(venue.id)}
-              className={`space-y-2 cursor-pointer transition-all ${
+              className={`p-4 cursor-pointer transition-all border-2 ${
                 isSelected
-                  ? 'border-ag-blue/80 bg-ag-surface-hover shadow-lg shadow-ag-blue/10'
-                  : 'opacity-75 hover:opacity-100'
+                  ? 'border-ag-blue bg-ag-surface-hover shadow-lg shadow-ag-blue/10'
+                  : 'border-ag-border bg-ag-surface'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-ag-text-muted">
-                  {venue.city}
-                </span>
-                {isSelected && <Badge variant="blue" size="sm">ACTIVE</Badge>}
+              <div className="flex items-center gap-2 mb-2">
+                <Building className="w-4 h-4 text-ag-blue" />
+                <span className="font-bold text-white text-sm truncate">{venue.name}</span>
               </div>
-              <h4 className="font-display font-bold text-sm text-white truncate">{venue.name}</h4>
-              <div className="text-xs font-mono text-ag-text-secondary">
-                Cap: {venue.total_capacity.toLocaleString()} • {venue.zones?.length || 0} Sectors
+              <div className="flex items-center justify-between text-xs text-ag-text-secondary">
+                <span>{venue.city}</span>
+                <span className="font-mono text-ag-green font-semibold">
+                  {formatNumber(venue.total_capacity)} Cap
+                </span>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Selected Venue Deep Dive & Zone Topography */}
-      <Card className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ag-border pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Building className="w-5 h-5 text-ag-blue" />
-              <h3 className="font-display font-bold text-lg text-white">{selectedVenue.name}</h3>
-            </div>
-            <p className="text-xs font-mono text-ag-text-secondary mt-0.5">
-              {selectedVenue.address || 'Aerodrome Rd, Nairobi'} • Total Stadium Rating:{' '}
-              <strong className="text-white">{selectedVenue.total_capacity.toLocaleString()}</strong>
-            </p>
+      {/* Selected Venue Details & Zones */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h3 className="font-display font-bold text-lg text-white">{selectedVenue.name} Zones</h3>
+            <Badge variant="blue" size="sm">
+              {zones.length} Zones
+            </Badge>
           </div>
 
           <Button
             size="sm"
-            variant="secondary"
+            variant="outline"
             onClick={() => setIsAddZoneModalOpen(true)}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
             className="text-xs"
           >
-            Add Spatial Sector
+            Add Zone
           </Button>
         </div>
 
-        {/* Sectors Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {/* Zones Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {zones.map((zone) => (
-            <div
-              key={zone.id}
-              className="p-3.5 bg-ag-black/40 border border-ag-border rounded-[8px] space-y-2 hover:border-ag-border/80 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <Badge
-                  variant={
-                    zone.zone_type === 'entry_gate' || zone.zone_type === 'exit_gate'
-                      ? 'blue'
-                      : zone.zone_type === 'medical_post'
-                      ? 'red'
-                      : zone.zone_type === 'vip'
-                      ? 'purple'
-                      : 'green'
-                  }
-                  size="sm"
-                >
-                  {zone.zone_type.replace('_', ' ')}
+            <Card key={zone.id} className="p-4 space-y-2 border-ag-border bg-ag-surface">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-white">{zone.name}</h4>
+                  <span className="text-[11px] text-ag-text-muted capitalize">
+                    {zone.zone_type.replace('_', ' ')}
+                  </span>
+                </div>
+                <Badge variant="neutral" size="sm">
+                  {formatNumber(zone.capacity)} MAX
                 </Badge>
-                <span className="text-xs font-mono text-ag-text-muted">
-                  Cap: {zone.capacity.toLocaleString()}
-                </span>
               </div>
-              <h5 className="font-display font-bold text-sm text-white">{zone.name}</h5>
-              <div className="text-[11px] font-mono text-ag-text-secondary flex items-center justify-between pt-1 border-t border-ag-border/40">
-                <span>BLE Mesh Sector</span>
-                <span className="text-ag-green">✓ Monitored</span>
-              </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Add Venue Modal */}
-      <Modal
-        isOpen={isAddVenueModalOpen}
-        onClose={() => setIsAddVenueModalOpen(false)}
-        title="Add Stadium / Arena Venue Template"
-        description="Register a new event grounds with spatial parameters"
-      >
-        <form onSubmit={handleCreateVenue} className="space-y-4">
+      <Modal isOpen={isAddVenueModalOpen} onClose={() => setIsAddVenueModalOpen(false)} title="Add New Venue">
+        <form onSubmit={handleCreateVenue} className="space-y-4 font-sans">
           <Input
             label="Venue Name"
-            placeholder="e.g. Kasarani Main Stadium"
+            placeholder="e.g. Nyayo National Stadium"
             value={newVenueName}
             onChange={(e) => setNewVenueName(e.target.value)}
             required
@@ -201,6 +172,7 @@ export const VenueManagement: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="City"
+              placeholder="Nairobi"
               value={newVenueCity}
               onChange={(e) => setNewVenueCity(e.target.value)}
               required
@@ -214,53 +186,47 @@ export const VenueManagement: React.FC = () => {
             />
           </div>
           <Input
-            label="Street Address / Location"
-            placeholder="e.g. Thika Superhighway, Nairobi"
+            label="Address / Location"
+            placeholder="e.g. Aerodrome Rd, Nairobi"
             value={newVenueAddress}
             onChange={(e) => setNewVenueAddress(e.target.value)}
           />
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-ag-border">
             <Button type="button" variant="outline" onClick={() => setIsAddVenueModalOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Register Venue
+              Save Venue
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Add Sector Modal */}
-      <Modal
-        isOpen={isAddZoneModalOpen}
-        onClose={() => setIsAddZoneModalOpen(false)}
-        title={`Add Sector to ${selectedVenue.name}`}
-      >
-        <form onSubmit={handleCreateZone} className="space-y-4">
+      {/* Add Zone Modal */}
+      <Modal isOpen={isAddZoneModalOpen} onClose={() => setIsAddZoneModalOpen(false)} title="Add Zone to Venue">
+        <form onSubmit={handleCreateZone} className="space-y-4 font-sans">
           <Input
-            label="Sector Name"
-            placeholder="e.g. North Bleachers Section 4"
+            label="Zone Name"
+            placeholder="e.g. Main Pitch, Gate E, VIP Lounge"
             value={newZoneName}
             onChange={(e) => setNewZoneName(e.target.value)}
             required
           />
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5">
-                Sector Type
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ag-text-secondary">Zone Type</label>
               <select
                 value={newZoneType}
-                onChange={(e) => setNewZoneType(e.target.value as ZoneType)}
-                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue"
+                onChange={(e) => setNewZoneType(e.target.value as any)}
+                className="w-full bg-ag-black border border-ag-border rounded-lg p-2.5 text-xs text-white"
               >
-                <option value="entry_gate">Entry Turnstile Gate</option>
-                <option value="exit_gate">Emergency Exit Gate</option>
-                <option value="floor_section">General Pitch / Floor</option>
-                <option value="vip">VIP Lounge / Skybox</option>
-                <option value="stage">Stage Pit / Barrier</option>
-                <option value="medical_post">Red Cross Medical Post</option>
-                <option value="vendor_area">Cashless Food / Bar Court</option>
+                <option value="floor_section">Floor / Standing</option>
+                <option value="entry_gate">Entry Gate</option>
+                <option value="exit_gate">Emergency Exit</option>
+                <option value="vip">VIP Area</option>
+                <option value="stage">Stage Area</option>
+                <option value="medical_post">Medical Post</option>
+                <option value="vendor_area">Food / Vendor</option>
               </select>
             </div>
             <Input
@@ -271,12 +237,12 @@ export const VenueManagement: React.FC = () => {
               required
             />
           </div>
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-ag-border">
             <Button type="button" variant="outline" onClick={() => setIsAddZoneModalOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Add Sector
+              Add Zone
             </Button>
           </div>
         </form>

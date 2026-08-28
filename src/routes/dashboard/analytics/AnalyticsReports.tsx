@@ -99,11 +99,11 @@ export const AnalyticsReports: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-bold text-xl text-white">
-            Post-Event Safety Analytics & Reports
+          <h2 className="font-display font-bold text-2xl text-white">
+            Safety & Attendance Reports
           </h2>
-          <p className="text-xs text-ag-text-secondary font-mono">
-            Automated crowd density curves, incident response telemetry, and safety compliance exports
+          <p className="text-xs text-ag-text-secondary">
+            Automated crowd curves, incident response logs, and safety clearance certification
           </p>
         </div>
 

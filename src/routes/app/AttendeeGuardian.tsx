@@ -4,20 +4,13 @@ import { useAppStore } from '@/lib/store';
 import { soundManager } from '@/lib/audio';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import {
-  Shield,
-  ShieldAlert,
   Smartphone,
-  Radio,
-  Volume2,
-  VolumeX,
-  AlertTriangle,
-  Lock,
-  Sparkles,
-  Wifi,
-  XCircle,
+  ShieldCheck,
+  ShieldAlert,
   BellRing,
+  CheckCircle2,
+  Lock,
 } from 'lucide-react';
 
 export const AttendeeGuardian: React.FC = () => {
@@ -32,7 +25,7 @@ export const AttendeeGuardian: React.FC = () => {
 
   const handleTriggerAlarmTest = () => {
     setIsAlarmActive(true);
-    triggerGuardianSOS('Physical tether severance simulation');
+    triggerGuardianSOS('Attendee tested theft alarm');
   };
 
   const handleDismissAlarm = () => {
@@ -41,128 +34,110 @@ export const AttendeeGuardian: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* THEFT ALARM FULL-SCREEN MODAL */}
+    <div className="space-y-5 font-sans">
+      {/* FULL-SCREEN THEFT ALARM TEST OVERLAY */}
       {isAlarmActive && (
         <div className="fixed inset-0 z-50 bg-ag-red flex flex-col items-center justify-between p-6 text-white text-center animate-flash-critical">
-          {/* Top warning */}
           <div className="pt-8 space-y-2">
             <div className="w-20 h-20 rounded-full bg-white/20 border-4 border-white flex items-center justify-center mx-auto animate-bounce shadow-2xl">
               <BellRing className="w-12 h-12 text-white animate-spin" />
             </div>
-            <div className="text-xs font-mono font-bold uppercase tracking-widest text-black bg-white px-3 py-1 rounded-full inline-block">
-              THEFT SENSOR TRIGGERED
+            <div className="text-xs font-bold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full inline-block">
+              THEFT ALARM TRIGGERED
             </div>
           </div>
 
-          {/* Core Banner Text */}
           <div className="space-y-3 max-w-xs">
-            <h1 className="font-display font-black text-3xl tracking-tight leading-tight text-white drop-shadow-lg">
+            <h1 className="font-display font-bold text-3xl tracking-tight leading-tight text-white drop-shadow-lg">
               DEVICE PROTECTED BY ANTIGRAVITY
             </h1>
-            <p className="text-xs font-mono text-white/90">
-              GPS Coordinates and BLE Hardware ID have been streamed to Nyayo Stadium Security Command.
+            <p className="text-xs text-white/90">
+              Your phone location has been flagged to stadium security.
             </p>
           </div>
 
-          {/* Dismiss button */}
           <div className="w-full max-w-xs pb-6">
             <Button
               size="lg"
               variant="secondary"
               onClick={handleDismissAlarm}
-              className="w-full font-bold text-sm bg-black text-white hover:bg-black/90 shadow-2xl"
+              className="w-full font-bold text-sm bg-black text-white hover:bg-black/90 h-12 shadow-2xl"
             >
-              DISARM ALARM & RESTORE
+              Turn Off Alarm
             </Button>
           </div>
         </div>
       )}
 
-      {/* Header Info */}
-      <div className="text-center space-y-1">
-        <h2 className="font-display font-bold text-xl text-white">
-          Guardian Mode Anti-Theft
-        </h2>
-        <p className="text-xs text-ag-text-secondary font-mono">
-          Smart BLE tethering and acoustic crowd distress defense
-        </p>
-      </div>
-
-      {/* Main Big Toggle Switch Card */}
-      <Card className="p-6 bg-gradient-to-b from-ag-surface to-ag-black border-2 border-ag-border text-center space-y-6">
-        {/* Animated Shield Status */}
+      {/* Main Switch Card */}
+      <Card className="p-6 text-center space-y-6 border-2 border-ag-border bg-ag-surface shadow-xl">
+        {/* Animated Shield Icon */}
         <div className="flex flex-col items-center justify-center space-y-3">
           <div
-            className={`w-24 h-24 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 ${
+            className={`w-24 h-24 rounded-3xl flex items-center justify-center border-2 transition-all duration-300 ${
               isActive
                 ? 'bg-ag-yellow-dim border-ag-yellow text-ag-yellow shadow-2xl shadow-ag-yellow/20 scale-105'
                 : 'bg-ag-black border-ag-border text-ag-text-muted'
             }`}
           >
-            {isActive ? (
-              <Shield className="w-12 h-12 animate-pulse" />
-            ) : (
-              <ShieldAlert className="w-12 h-12" />
-            )}
+            {isActive ? <ShieldAlert className="w-12 h-12" /> : <Smartphone className="w-12 h-12" />}
           </div>
 
-          <div>
-            <Badge variant={isActive ? 'yellow' : 'neutral'} size="md" pulse={isActive}>
-              {isActive ? 'SHIELD ACTIVE & PROTECTED' : 'GUARDIAN MODE OFF'}
-            </Badge>
+          <div className="space-y-1">
+            <h2 className="font-display font-bold text-2xl text-white">
+              {isActive ? 'Guardian Protection Active' : 'Phone Protection Off'}
+            </h2>
+            <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
+              {isActive
+                ? 'Your phone is linked to your smart wristband.'
+                : 'Turn ON to protect your phone in dense crowds.'}
+            </p>
           </div>
         </div>
 
-        {/* Big Switch Control Button */}
-        <button
+        {/* Big Toggle Switch Button */}
+        <Button
+          size="lg"
+          variant={isActive ? 'danger' : 'primary'}
           onClick={handleToggle}
-          className={`w-full py-4 px-6 rounded-[12px] font-display font-bold text-base uppercase tracking-wider transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
-            isActive
-              ? 'bg-ag-yellow text-black hover:bg-ag-yellow/90 shadow-ag-yellow/20'
-              : 'bg-ag-surface-hover border border-ag-border text-white hover:border-ag-yellow/50'
+          className={`w-full py-4 text-base font-bold shadow-2xl h-14 rounded-2xl ${
+            isActive ? 'bg-ag-yellow text-black hover:bg-ag-yellow/90' : 'bg-ag-blue text-white'
           }`}
         >
-          <Wifi className="w-5 h-5" />
-          <span>{isActive ? 'DISARM GUARDIAN MODE' : 'ARM GUARDIAN MODE'}</span>
-        </button>
-
-        {/* Dynamic Details when ON vs OFF */}
-        {isActive ? (
-          <div className="p-3.5 rounded-[8px] bg-ag-black/70 border border-ag-border text-left space-y-2 text-xs font-mono">
-            <div className="flex items-center justify-between text-ag-text-secondary">
-              <span>Paired Device:</span>
-              <span className="text-white font-bold">{guardianDevice?.device_name}</span>
-            </div>
-            <div className="flex items-center justify-between text-ag-text-secondary">
-              <span>BLE Mesh Node:</span>
-              <span className="text-ag-yellow font-bold">TETHER_09 (Nyayo Pit)</span>
-            </div>
-            <div className="flex items-center justify-between text-ag-text-secondary">
-              <span>Signal Integrity:</span>
-              <span className="text-ag-green font-bold">-48 dBm (Strong)</span>
-            </div>
-          </div>
-        ) : (
-          <div className="p-3.5 rounded-[8px] bg-ag-black/40 border border-ag-border text-left space-y-1.5 text-xs text-ag-text-secondary">
-            <div className="font-semibold text-white">How Guardian Mode Protects You:</div>
-            <p className="text-[11px] leading-relaxed">
-              When armed, your phone tethers to nearby venue BLE mesh nodes and wristbands. If severed in a crowd, a 100dB siren sounds and security receives your immediate GPS coordinates.
-            </p>
-          </div>
-        )}
+          {isActive ? 'DISARM PHONE PROTECTION' : 'ACTIVATE PHONE PROTECTION'}
+        </Button>
       </Card>
 
-      {/* Test Theft Alert Button */}
-      <Button
-        size="lg"
-        variant="danger"
-        onClick={handleTriggerAlarmTest}
-        className="w-full text-xs font-bold uppercase tracking-wider shadow-lg shadow-ag-red/20 h-12"
-        leftIcon={<AlertTriangle className="w-4 h-4" />}
-      >
-        Test Theft Alert (Simulation)
-      </Button>
+      {/* Clear Explanation Card */}
+      <Card className="p-5 space-y-3 border-ag-border bg-ag-surface">
+        <h3 className="font-bold text-white text-sm">How Phone Protection Works</h3>
+        <ul className="space-y-2.5 text-xs text-ag-text-secondary leading-relaxed">
+          <li className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-ag-green shrink-0 mt-0.5" />
+            <span>Connects wirelessly to your silicone event wristband.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-ag-green shrink-0 mt-0.5" />
+            <span>If detached in a crowd, your phone sounds a 100dB siren and locks immediately.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-ag-green shrink-0 mt-0.5" />
+            <span>Notifies nearby stadium security officers with your position.</span>
+          </li>
+        </ul>
+      </Card>
+
+      {/* Test Siren Button */}
+      <div className="pt-2 text-center">
+        <Button
+          size="md"
+          variant="outline"
+          onClick={handleTriggerAlarmTest}
+          className="w-full text-xs font-semibold text-ag-yellow border-ag-yellow/40 hover:bg-ag-yellow/10 h-11 rounded-xl"
+        >
+          Test Theft Siren Alarm
+        </Button>
+      </div>
     </div>
   );
 };

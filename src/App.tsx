@@ -36,15 +36,15 @@ export const App: React.FC = () => {
   if (isLoadingInitialData) {
     return (
       <div className="h-screen w-screen bg-ag-black flex flex-col items-center justify-center text-white space-y-4 font-sans">
-        <div className="w-12 h-12 rounded-xl bg-ag-surface border border-ag-blue flex items-center justify-center shadow-2xl">
+        <div className="w-12 h-12 rounded-2xl bg-ag-surface border border-ag-border flex items-center justify-center shadow-2xl">
           <Loader2 className="w-6 h-6 text-ag-blue animate-spin" />
         </div>
         <div className="space-y-1 text-center">
-          <div className="font-display font-bold text-base tracking-wider uppercase">
-            CONNECTING TO SUPABASE TELEMETRY
+          <div className="font-display font-bold text-lg text-white">
+            Loading ANTIGRAVITY
           </div>
-          <div className="text-xs font-mono text-ag-text-secondary">
-            Syncing crowd radar, events, and turnstile nodes...
+          <div className="text-xs text-ag-text-secondary">
+            Preparing your dashboard...
           </div>
         </div>
       </div>

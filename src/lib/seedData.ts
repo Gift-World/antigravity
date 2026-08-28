@@ -31,7 +31,7 @@ export const INITIAL_USERS: User[] = [
   {
     id: '01111111-1111-1111-1111-111111111111',
     organization_id: INITIAL_ORG.id,
-    full_name: 'Commander Brian Ochieng',
+    full_name: 'Brian Ochieng (Admin)',
     email: 'admin@antigravity.ke',
     phone: '+254 700 000 001',
     role: 'super_admin',
@@ -51,7 +51,7 @@ export const INITIAL_USERS: User[] = [
   {
     id: '03333333-3333-3333-3333-333333333333',
     organization_id: INITIAL_ORG.id,
-    full_name: 'Captain Evans Mutua (Sec Lead)',
+    full_name: 'Evans Mutua (Security)',
     email: 'evans.security@antigravity.ke',
     phone: '+254 700 000 003',
     role: 'security',
@@ -61,7 +61,7 @@ export const INITIAL_USERS: User[] = [
   {
     id: '04444444-4444-4444-4444-444444444444',
     organization_id: INITIAL_ORG.id,
-    full_name: 'Dr. Amina Abdi (Chief Paramedic)',
+    full_name: 'Dr. Amina Abdi (Medical)',
     email: 'amina.medical@antigravity.ke',
     phone: '+254 700 000 004',
     role: 'medical',

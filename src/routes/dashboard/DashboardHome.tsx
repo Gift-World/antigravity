@@ -11,23 +11,22 @@ import {
   Ticket,
   DollarSign,
   AlertTriangle,
-  Radio,
   ArrowRight,
   TrendingUp,
-  Clock,
-  Shield,
   MapPin,
+  Activity,
+  Plus,
+  Radio,
 } from 'lucide-react';
 
 export const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
-  const { events, tickets, incidents, alerts, activeEventId } = useAppStore();
+  const { events, tickets, alerts, activeEventId } = useAppStore();
 
   const activeLiveEvent = events.find((e) => e.status === 'live');
-  const upcomingEvents = events.filter((e) => e.status === 'published');
-  const openIncidents = incidents.filter((i) => i.status !== 'resolved');
+  const upcomingEvents = events.filter((e) => e.status !== 'live');
 
-  // Calculate high-level financial metrics
+  // Revenue & Tickets
   const totalRevenue = events.reduce((sum, ev) => {
     return sum + ev.ticket_tiers.reduce((tSum, tier) => tSum + tier.price * tier.sold, 0);
   }, 0);
@@ -37,116 +36,104 @@ export const DashboardHome: React.FC = () => {
   }, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner if Live Event is Active */}
+    <div className="space-y-8 font-sans">
+      {/* Top Banner for Active Live Event */}
       {activeLiveEvent && (
-        <div className="bg-gradient-to-r from-ag-red/20 via-ag-surface to-ag-surface border border-ag-red/50 rounded-[12px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-lg bg-ag-red/20 border border-ag-red flex items-center justify-center text-ag-red shrink-0">
-              <Radio className="w-5 h-5 animate-pulse" />
+        <div className="bg-gradient-to-r from-ag-green-dim/40 via-ag-surface to-ag-surface border border-ag-green/50 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-ag-green/20 border border-ag-green flex items-center justify-center text-ag-green shrink-0">
+              <Activity className="w-6 h-6 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Badge variant="red" pulse size="sm">
-                  LIVE EVENT COMMAND ACTIVE
+                <Badge variant="green" pulse size="sm">
+                  LIVE NOW
                 </Badge>
-                <span className="text-xs font-mono text-ag-text-secondary">
+                <span className="text-xs text-ag-text-secondary">
                   {activeLiveEvent.venue?.name}
                 </span>
               </div>
-              <h3 className="font-display font-bold text-lg text-white">{activeLiveEvent.title}</h3>
-              <p className="text-xs text-ag-text-secondary mt-0.5">
-                Current Attendance: <strong className="text-white font-mono">{formatNumber(activeLiveEvent.current_attendance)}</strong> / {formatNumber(activeLiveEvent.max_capacity)} ({( (activeLiveEvent.current_attendance / activeLiveEvent.max_capacity) * 100).toFixed(1)}%)
+              <h3 className="font-display font-bold text-xl text-white">{activeLiveEvent.title}</h3>
+              <p className="text-sm text-ag-text-secondary mt-1">
+                Current Attendance: <strong className="text-white font-mono">{formatNumber(activeLiveEvent.current_attendance)}</strong> / {formatNumber(activeLiveEvent.max_capacity)} people inside
               </p>
             </div>
           </div>
 
           <Button
-            size="md"
-            variant="danger"
+            size="lg"
+            variant="primary"
             onClick={() => navigate(`/dashboard/events/${activeLiveEvent.id}/live`)}
-            className="font-bold shrink-0 shadow-lg shadow-ag-red/20"
+            className="font-bold shrink-0 bg-ag-green hover:bg-ag-green/90 text-black shadow-lg shadow-ag-green/20 h-12 px-6"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Launch Command Center
+            Open Live View
           </Button>
         </div>
       )}
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {/* Total Events */}
-        <Card hover onClick={() => navigate('/dashboard/events')}>
+        <Card className="p-5">
           <div className="flex items-center justify-between text-ag-text-secondary mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider">Active Events</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Total Events</span>
             <Calendar className="w-4 h-4 text-ag-blue" />
           </div>
-          <div className="font-display font-bold text-2xl text-white">{events.length}</div>
-          <div className="text-[11px] text-ag-text-muted mt-1 flex items-center gap-1 font-mono">
-            <span className="text-ag-green font-semibold">1 Live</span> • {upcomingEvents.length} Scheduled
+          <div className="font-display font-bold text-3xl text-white">{events.length}</div>
+          <div className="text-xs text-ag-text-muted mt-1">
+            {activeLiveEvent ? '1 event live now' : 'All scheduled'}
           </div>
         </Card>
 
-        {/* Total Tickets Sold */}
-        <Card hover onClick={() => navigate('/dashboard/tickets')}>
+        {/* Tickets Sold */}
+        <Card className="p-5">
           <div className="flex items-center justify-between text-ag-text-secondary mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider">Tickets Sold</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Tickets Sold</span>
             <Ticket className="w-4 h-4 text-ag-green" />
           </div>
-          <div className="font-display font-bold text-2xl text-ag-green">
+          <div className="font-display font-bold text-3xl text-ag-green">
             {formatNumber(totalTicketsSold)}
           </div>
-          <div className="text-[11px] text-ag-text-muted mt-1 flex items-center gap-1 font-mono">
-            <TrendingUp className="w-3 h-3 text-ag-green" />
-            <span className="text-ag-green font-semibold">+847</span> in last 3 hours
+          <div className="text-xs text-ag-green mt-1 flex items-center gap-1">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>M-Pesa Verified</span>
           </div>
         </Card>
 
         {/* Total Revenue */}
-        <Card hover onClick={() => navigate('/dashboard/analytics')}>
+        <Card className="p-5">
           <div className="flex items-center justify-between text-ag-text-secondary mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider">Total Revenue</span>
+            <span className="text-xs uppercase tracking-wider font-semibold">Total Revenue</span>
             <DollarSign className="w-4 h-4 text-ag-purple" />
           </div>
-          <div className="font-display font-bold text-2xl text-ag-purple">
+          <div className="font-display font-bold text-3xl text-ag-purple">
             {formatCurrencyKES(totalRevenue)}
           </div>
-          <div className="text-[11px] text-ag-text-muted mt-1 font-mono">
-            M-Pesa STK Verified Native
-          </div>
-        </Card>
-
-        {/* Active Incidents */}
-        <Card hover onClick={() => navigate('/dashboard/incidents')}>
-          <div className="flex items-center justify-between text-ag-text-secondary mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider">Active Incidents</span>
-            <AlertTriangle className="w-4 h-4 text-ag-yellow" />
-          </div>
-          <div className="font-display font-bold text-2xl text-ag-yellow">
-            {openIncidents.length}
-          </div>
-          <div className="text-[11px] text-ag-text-muted mt-1 font-mono flex items-center gap-1">
-            <span className="text-ag-yellow font-semibold">1 High Priority</span> • 2 Under Triage
+          <div className="text-xs text-ag-text-muted mt-1">
+            Direct to organizer till / paybill
           </div>
         </Card>
       </div>
 
-      {/* Split Row: Upcoming Events & Real-time Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Events Pipeline */}
+      {/* Events & Recent Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Events Cards (2 cols) */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-base text-white">Event Operations Pipeline</h3>
-            <Link
-              to="/dashboard/events"
-              className="text-xs font-mono text-ag-blue hover:underline flex items-center gap-1"
+            <h3 className="font-display font-bold text-lg text-white">Your Events</h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/dashboard/events/create')}
+              className="text-xs"
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
             >
-              <span>View All</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
+              New Event
+            </Button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {events.map((event) => {
               const totalCap = event.max_capacity;
               const currentAtt = event.current_attendance;
@@ -155,59 +142,78 @@ export const DashboardHome: React.FC = () => {
               return (
                 <Card
                   key={event.id}
-                  hover
-                  onClick={() => navigate(`/dashboard/events/${event.id}/overview`)}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-ag-border hover:border-ag-blue/40 transition-colors"
                 >
-                  <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="space-y-2 flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <Badge
                         variant={
                           event.status === 'live'
-                            ? 'red'
-                            : event.status === 'published'
                             ? 'green'
+                            : event.status === 'published'
+                            ? 'blue'
                             : 'neutral'
                         }
                         pulse={event.status === 'live'}
                         size="sm"
                       >
-                        {event.status}
+                        {event.status.toUpperCase()}
                       </Badge>
-                      <span className="text-xs font-mono text-ag-text-muted">
+                      <span className="text-xs text-ag-text-muted">
                         {new Date(event.event_date).toLocaleDateString('en-KE', {
                           month: 'short',
                           day: 'numeric',
+                          year: 'numeric',
                         })}
                       </span>
                     </div>
 
-                    <h4 className="font-display font-bold text-sm text-white truncate">
+                    <h4 className="font-display font-bold text-base text-white truncate">
                       {event.title}
                     </h4>
 
-                    <div className="flex items-center gap-2 text-xs text-ag-text-secondary font-mono">
+                    <div className="flex items-center gap-2 text-xs text-ag-text-secondary">
                       <MapPin className="w-3.5 h-3.5 text-ag-text-muted" />
                       <span>{event.venue?.name}</span>
                     </div>
                   </div>
 
-                  {/* Progress Bar & Counter */}
-                  <div className="w-full sm:w-48 space-y-1.5 shrink-0">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-ag-text-muted">Attendance</span>
-                      <span className="font-bold text-white">
-                        {formatNumber(currentAtt)} / {formatNumber(totalCap)}
-                      </span>
+                  {/* Actions & Progress */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="w-32 space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-ag-text-muted">{percent}% full</span>
+                        <span className="font-bold text-white">{formatNumber(currentAtt)}</span>
+                      </div>
+                      <div className="w-full bg-ag-black h-2 rounded-full overflow-hidden border border-ag-border">
+                        <div
+                          className={`h-full rounded-full ${
+                            percent > 90 ? 'bg-ag-red' : percent > 75 ? 'bg-ag-yellow' : 'bg-ag-green'
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-ag-black h-2 rounded-full overflow-hidden border border-ag-border">
-                      <div
-                        className={`h-full rounded-full ${
-                          percent > 90 ? 'bg-ag-red' : percent > 75 ? 'bg-ag-yellow' : 'bg-ag-green'
-                        }`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
+
+                    {event.status === 'live' ? (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => navigate(`/dashboard/events/${event.id}/live`)}
+                        className="bg-ag-green hover:bg-ag-green/90 text-black font-bold h-10 px-4"
+                      >
+                        GO LIVE
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/dashboard/events/${event.id}/overview`)}
+                        className="h-10 px-4"
+                      >
+                        View Event
+                      </Button>
+                    )}
                   </div>
                 </Card>
               );
@@ -215,18 +221,18 @@ export const DashboardHome: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 1 Col: Live Alert Stream */}
+        {/* Recent Alerts (1 col) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-base text-white">Live Telemetry Alerts</h3>
-            <span className="text-xs font-mono text-ag-text-muted">{alerts.length} Total</span>
+            <h3 className="font-display font-bold text-lg text-white">Recent Alerts</h3>
+            <span className="text-xs text-ag-text-muted">{alerts.length} total</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {alerts.slice(0, 4).map((alert) => (
               <div
                 key={alert.id}
-                className={`p-3 rounded-[8px] border text-xs ${
+                className={`p-3.5 rounded-xl border text-xs space-y-1 ${
                   alert.severity === 'critical'
                     ? 'bg-ag-red-dim border-ag-red/40 text-ag-red'
                     : alert.severity === 'warning'
@@ -234,15 +240,15 @@ export const DashboardHome: React.FC = () => {
                     : 'bg-ag-surface border-ag-border text-ag-text-secondary'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold uppercase font-mono text-[10px]">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold uppercase tracking-wider text-[10px]">
                     {alert.alert_type.replace('_', ' ')}
                   </span>
-                  <span className="text-[10px] font-mono opacity-70">
+                  <span className="text-[10px] opacity-70">
                     {new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <p className="text-ag-text-primary text-[11px] leading-snug">{alert.message}</p>
+                <p className="text-white text-xs leading-relaxed">{alert.message}</p>
               </div>
             ))}
           </div>

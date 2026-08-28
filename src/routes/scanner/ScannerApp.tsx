@@ -5,20 +5,16 @@ import { soundManager } from '@/lib/audio';
 import { parseQRPayload } from '@/lib/qr';
 import { Ticket } from '@/types/database';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
   QrCode,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  RefreshCw,
   Camera,
-  Layers,
-  ArrowRight,
+  Settings,
   Shield,
-  Zap,
 } from 'lucide-react';
 
 export const ScannerApp: React.FC = () => {
@@ -33,30 +29,27 @@ export const ScannerApp: React.FC = () => {
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
-  // Gates: Gate A, Gate B, Gate C, Gate D
   const gates = [
-    { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (North Turnstiles)' },
-    { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East Main Entrance)' },
-    { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South General)' },
-    { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP & Media Express)' },
+    { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (Main North)' },
+    { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East Public)' },
+    { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South Express)' },
+    { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP)' },
   ];
 
   const [selectedGate, setSelectedGate] = useState(gates[0].id);
   const [scanResult, setScanResult] = useState<{
     status: 'idle' | 'success' | 'error';
     ticket?: Ticket;
-    holderName?: string;
     reason?: string;
     message?: string;
   }>({ status: 'idle' });
 
   const [isScanning, setIsScanning] = useState(false);
-  const [offlineQueueCount, setOfflineQueueCount] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
-  // Gate Scan counts
-  const thisGateScans = gateScans.filter((s) => s.gate_id === selectedGate).length + 3840;
-  const totalScansToday = activeEvent.current_attendance;
+  // Total scanned through this scanner
+  const totalScannedCount = 847 + gateScans.length;
 
   useEffect(() => {
     return () => {
@@ -67,7 +60,7 @@ export const ScannerApp: React.FC = () => {
   }, []);
 
   const handleScanData = async (decodedText: string) => {
-    if (scanResult.status !== 'idle') return; // Debounce while displaying result
+    if (scanResult.status !== 'idle') return;
 
     try {
       const parsed = parseQRPayload(decodedText);
@@ -75,10 +68,10 @@ export const ScannerApp: React.FC = () => {
         soundManager.playScanError();
         setScanResult({
           status: 'error',
-          reason: 'Malformed QR',
-          message: 'Non-Antigravity or corrupted barcode format.',
+          reason: 'Invalid Ticket',
+          message: 'Fake or unrecognized barcode format.',
         });
-        setTimeout(() => setScanResult({ status: 'idle' }), 1800);
+        setTimeout(() => setScanResult({ status: 'idle' }), 2000);
         return;
       }
 
@@ -94,14 +87,13 @@ export const ScannerApp: React.FC = () => {
         setScanResult({
           status: 'success',
           ticket: res.ticket,
-          holderName: res.ticket?.attendee_id === currentUser.id ? currentUser.full_name : 'Attendee Guest',
           message: res.message,
         });
       } else {
         setScanResult({
           status: 'error',
           ticket: res.ticket,
-          reason: res.reason || 'Invalid',
+          reason: res.reason === 'already_scanned' ? 'Already Used' : 'Denied',
           message: res.message,
         });
       }
@@ -109,19 +101,18 @@ export const ScannerApp: React.FC = () => {
       soundManager.playScanError();
       setScanResult({
         status: 'error',
-        reason: 'Malformed QR',
-        message: 'Non-Antigravity or corrupted barcode format.',
+        reason: 'Error Reading Ticket',
+        message: 'Could not process code.',
       });
     }
 
-    // Auto reset flash state after short pause
     setTimeout(() => {
       setScanResult({ status: 'idle' });
-    }, 1800);
+    }, 2000);
   };
 
-  // Test buttons for immediate mock demo
   const handleTestScan = (type: 'valid' | 'duplicate' | 'invalid') => {
+    setIsSettingsOpen(false);
     if (type === 'valid') {
       const validTicket = tickets.find((t) => t.status === 'valid') || tickets[0];
       handleScanData(
@@ -136,9 +127,7 @@ export const ScannerApp: React.FC = () => {
       const scannedTicket = tickets.find((t) => t.status === 'scanned') || {
         ...tickets[0],
         status: 'scanned' as const,
-        scanned_at: new Date(Date.now() - 3600000).toISOString(),
       };
-      // Force scanned check
       handleScanData(
         JSON.stringify({
           t: scannedTicket.id,
@@ -150,8 +139,8 @@ export const ScannerApp: React.FC = () => {
     } else {
       handleScanData(
         JSON.stringify({
-          t: 'fake_ticket_counterfeit_88',
-          h: 'bad_hash_counterfeit_screenshot',
+          t: 'fake_ticket_99',
+          h: 'invalid_hash',
           d: 'fp_unknown',
           e: activeEventId,
         })
@@ -166,75 +155,131 @@ export const ScannerApp: React.FC = () => {
 
       await qrScanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { fps: 10, qrbox: { width: 280, height: 280 } },
         (decodedText) => handleScanData(decodedText),
         () => {}
       );
       setIsScanning(true);
     } catch (err) {
-      console.warn('Camera not accessible or permission denied, using interactive test buttons.', err);
+      console.warn('Camera fallback triggered.', err);
       setIsScanning(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-ag-black text-ag-text-primary flex flex-col items-center justify-between p-4 selection:bg-ag-blue/30 selection:text-ag-green font-sans relative overflow-hidden">
-      {/* SUCCESS FLASH OVERLAY (0.5s Green Flash) */}
+    <div className="min-h-screen bg-ag-black text-white flex flex-col items-center justify-between p-4 selection:bg-ag-blue/30 font-sans relative overflow-hidden">
+      {/* SUCCESS FLASH OVERLAY */}
       {scanResult.status === 'success' && (
         <div className="fixed inset-0 z-50 bg-ag-green flex flex-col items-center justify-center p-6 text-black animate-flash-success">
-          <CheckCircle2 className="w-24 h-24 mb-4 text-black animate-bounce" />
-          <h2 className="font-display font-bold text-4xl uppercase tracking-wider text-black">
-            ENTRY GRANTED
-          </h2>
-          <div className="mt-4 p-4 bg-black/10 rounded-[12px] border border-black/20 text-center w-full max-w-xs">
+          <CheckCircle2 className="w-28 h-28 mb-4 text-black animate-bounce" />
+          <h1 className="font-display font-bold text-5xl sm:text-6xl uppercase tracking-wider text-black">
+            ✅ ENTER
+          </h1>
+          <div className="mt-4 p-4 bg-black/10 rounded-2xl text-center w-full max-w-xs space-y-1">
             <div className="text-2xl font-bold font-display uppercase text-black">
-              {scanResult.ticket?.tier || 'VIP ACCESS'}
+              {scanResult.ticket?.tier || 'Regular Pitch'}
             </div>
-            <div className="text-sm font-mono text-black font-semibold mt-1">
-              Pass ID: #{scanResult.ticket?.id.substring(0, 8)}
-            </div>
+            <div className="text-sm font-semibold text-black/80">Valid Ticket</div>
           </div>
         </div>
       )}
 
-      {/* ERROR FLASH OVERLAY (Red Flash) */}
+      {/* ERROR FLASH OVERLAY */}
       {scanResult.status === 'error' && (
         <div className="fixed inset-0 z-50 bg-ag-red flex flex-col items-center justify-center p-6 text-white animate-flash-critical">
-          <XCircle className="w-24 h-24 mb-4 text-white animate-pulse" />
-          <h2 className="font-display font-bold text-4xl uppercase tracking-wider text-white">
-            ACCESS DENIED
-          </h2>
-          <div className="mt-4 p-4 bg-black/30 rounded-[12px] border border-white/30 text-center w-full max-w-xs">
-            <div className="text-xl font-bold font-display uppercase text-white">
-              {scanResult.reason?.replace('_', ' ').toUpperCase()}
+          <XCircle className="w-28 h-28 mb-4 text-white animate-pulse" />
+          <h1 className="font-display font-bold text-5xl sm:text-6xl uppercase tracking-wider text-white">
+            ❌ DENIED
+          </h1>
+          <div className="mt-4 p-4 bg-black/30 rounded-2xl text-center w-full max-w-xs space-y-1 border border-white/20">
+            <div className="text-xl font-bold uppercase text-white">
+              {scanResult.reason || 'Invalid Ticket'}
             </div>
-            <div className="text-xs font-mono text-white/90 mt-1">
-              {scanResult.message}
-            </div>
+            <div className="text-xs text-white/90">{scanResult.message}</div>
           </div>
         </div>
       )}
 
       {/* MOBILE CONTAINER (Max 480px Centered) */}
-      <div className="w-full max-w-[480px] flex-1 flex flex-col justify-between space-y-4">
-        {/* Top Header & Gate Selector */}
-        <div className="space-y-3 bg-ag-surface p-4 rounded-[12px] border border-ag-border shadow-lg">
-          <div className="flex items-center justify-between">
-            <AntigravityLogo size="sm" />
-            <div className="flex items-center gap-1.5 text-xs font-mono text-ag-green">
-              <span className="w-2 h-2 rounded-full bg-ag-green animate-ping" />
-              <span>TURNSTILE READY</span>
+      <div className="w-full max-w-md flex-1 flex flex-col justify-between space-y-4">
+        {/* Top Header */}
+        <div className="flex items-center justify-between p-4 bg-ag-surface rounded-2xl border border-ag-border shadow-lg">
+          <AntigravityLogo size="sm" />
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedGate}
+              onChange={(e) => setSelectedGate(e.target.value)}
+              className="bg-ag-black border border-ag-border text-white text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:outline-none"
+            >
+              {gates.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-lg bg-ag-black hover:bg-ag-surface-hover border border-ag-border text-ag-text-secondary hover:text-white"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* HUGE MAIN SCANNER VIEWPORT / BUTTON */}
+        <div
+          onClick={() => {
+            if (!isScanning) {
+              startCamera();
+            } else {
+              handleTestScan('valid');
+            }
+          }}
+          className="flex-1 min-h-[380px] bg-ag-surface/50 border-2 border-dashed border-ag-border hover:border-ag-green rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all active:scale-[0.98] shadow-2xl relative overflow-hidden group"
+        >
+          <div id="qr-reader" className="w-full h-full absolute inset-0 z-0" />
+
+          <div className="relative z-10 flex flex-col items-center justify-center space-y-4">
+            <div className="w-24 h-24 rounded-3xl bg-ag-green/20 border-2 border-ag-green flex items-center justify-center text-ag-green group-hover:scale-110 transition-transform shadow-2xl shadow-ag-green/20">
+              <QrCode className="w-12 h-12" />
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl font-display font-bold text-white">
+                {isScanning ? 'Aim Camera at Ticket' : 'TAP TO SCAN'}
+              </h2>
+              <p className="text-xs text-ag-text-secondary">
+                Point at attendee screen or wristband QR
+              </p>
             </div>
           </div>
+        </div>
 
+        {/* BOTTOM RUNNING COUNT */}
+        <div className="p-4 bg-ag-surface rounded-2xl border border-ag-border text-center">
+          <div className="text-xs text-ag-text-secondary uppercase font-semibold">Total Attendees Scanned</div>
+          <div className="text-3xl font-display font-bold text-ag-green font-mono mt-0.5">
+            Scanned: {totalScannedCount}
+          </div>
+        </div>
+      </div>
+
+      {/* Settings & Test Tools Modal */}
+      <Modal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title="Gate Scanner Options & Tests"
+      >
+        <div className="space-y-4 font-sans text-sm">
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wider text-ag-text-muted mb-1 font-mono">
-              Current Gate Checkpoint
+            <label className="block text-xs font-semibold text-ag-text-secondary mb-1">
+              Active Checkpoint
             </label>
             <select
               value={selectedGate}
               onChange={(e) => setSelectedGate(e.target.value)}
-              className="w-full bg-ag-black/80 border border-ag-border text-ag-text-primary rounded-[6px] px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-ag-blue"
+              className="w-full bg-ag-black border border-ag-border rounded-lg p-2.5 text-white text-xs"
             >
               {gates.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -243,73 +288,38 @@ export const ScannerApp: React.FC = () => {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Viewfinder Camera Scanner Area */}
-        <div className="relative aspect-square w-full bg-ag-black rounded-[16px] border-2 border-ag-border overflow-hidden flex flex-col items-center justify-center p-4 shadow-2xl">
-          <div id="qr-reader" className="w-full h-full object-cover" />
-
-          {/* Holographic Target Box */}
-          <div className="absolute inset-8 pointer-events-none border-2 border-dashed border-ag-blue/60 rounded-[12px] flex items-center justify-center">
-            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-ag-green to-transparent animate-pulse absolute" />
-            <div className="text-center space-y-2 bg-ag-black/80 p-3 rounded border border-ag-border">
-              <Camera className="w-6 h-6 text-ag-blue mx-auto animate-pulse" />
-              <div className="text-xs font-mono text-ag-text-secondary">
-                Align Pass QR inside frame
-              </div>
+          <div className="pt-2 border-t border-ag-border space-y-2">
+            <div className="text-xs font-semibold text-ag-text-muted uppercase">Simulation Test Scans</div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleTestScan('valid')}
+                className="bg-ag-green text-black font-bold h-10"
+              >
+                Test Valid
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleTestScan('duplicate')}
+                className="text-ag-yellow border-ag-yellow/40 h-10"
+              >
+                Duplicate
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => handleTestScan('invalid')}
+                className="h-10"
+              >
+                Fake QR
+              </Button>
             </div>
           </div>
-
-          {!isScanning && (
-            <button
-              onClick={startCamera}
-              className="absolute bottom-4 z-10 bg-ag-surface/90 hover:bg-ag-surface border border-ag-blue/50 text-ag-blue text-xs font-mono px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg"
-            >
-              Activate Camera Feed
-            </button>
-          )}
         </div>
-
-        {/* 3 Interactive Test Simulator Buttons */}
-        <div className="space-y-2 bg-ag-surface p-4 rounded-[12px] border border-ag-border">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ag-text-muted text-center">
-            Demo Simulator Buttons
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleTestScan('valid')}
-              className="py-2.5 px-2 bg-ag-green-dim hover:bg-ag-green/20 border border-ag-green/40 text-ag-green rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
-            >
-              ✓ Test Valid
-            </button>
-            <button
-              onClick={() => handleTestScan('duplicate')}
-              className="py-2.5 px-2 bg-ag-yellow-dim hover:bg-ag-yellow/20 border border-ag-yellow/40 text-ag-yellow rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
-            >
-              ⚠ Duplicate
-            </button>
-            <button
-              onClick={() => handleTestScan('invalid')}
-              className="py-2.5 px-2 bg-ag-red-dim hover:bg-ag-red/20 border border-ag-red/40 text-ag-red rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
-            >
-              ✕ Invalid / Fake
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Turnstile Statistics Counter */}
-        <div className="bg-ag-surface p-3.5 rounded-[12px] border border-ag-border text-xs font-mono flex items-center justify-between text-ag-text-secondary">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-ag-blue" />
-            <span>
-              Scanned today: <strong className="text-white">{totalScansToday.toLocaleString()}</strong>
-            </span>
-          </div>
-          <div className="border-l border-ag-border pl-3 text-ag-green">
-            This gate: <strong className="text-white">{thisGateScans.toLocaleString()}</strong>
-          </div>
-        </div>
-      </div>
+      </Modal>
     </div>
   );
 };

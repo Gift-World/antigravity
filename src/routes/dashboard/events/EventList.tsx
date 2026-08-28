@@ -38,9 +38,9 @@ export const EventList: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-bold text-xl text-white">Event Operations</h2>
-          <p className="text-xs text-ag-text-secondary font-mono">
-            Manage live telemetry, ticketing tiers, gate safety thresholds, and capacity
+          <h2 className="font-display font-bold text-2xl text-white">Events</h2>
+          <p className="text-xs text-ag-text-secondary">
+            Manage your live and scheduled events across Kenya
           </p>
         </div>
 
