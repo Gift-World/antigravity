@@ -1,5 +1,5 @@
 // src/lib/store.ts
-// Global reactive Zustand store with simulation, offline support & real-time bridge
+// Global reactive Zustand store with Supabase live backend, Realtime sync, and offline seed fallback
 
 import { create } from 'zustand';
 import {
@@ -36,8 +36,14 @@ import {
 import { soundManager } from '@/lib/audio';
 import { createTicketQRPayload } from '@/lib/qr';
 import { triggerMpesaSTKPush } from '@/lib/mpesa';
+import { supabaseService } from '@/lib/supabaseService';
 
 interface AppState {
+  // Loading & Connection state
+  isLoadingInitialData: boolean;
+  isSupabaseConnected: boolean;
+  initData: () => Promise<void>;
+
   // Authentication & Context
   currentUser: User;
   currentOrg: Organization;
@@ -126,18 +132,13 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  isLoadingInitialData: true,
+  isSupabaseConnected: false,
+
+  // Fallback defaults initialized with seedData
   currentUser: INITIAL_USERS[0],
   currentOrg: INITIAL_ORG,
   users: INITIAL_USERS,
-  setCurrentUser: (user) => set({ currentUser: user }),
-  setUserRole: (role) => {
-    const user = get().users.find((u) => u.role === role) || {
-      ...get().currentUser,
-      role,
-    };
-    set({ currentUser: user });
-  },
-
   venues: INITIAL_VENUES,
   events: INITIAL_EVENTS,
   tickets: INITIAL_TICKETS,
@@ -177,6 +178,92 @@ export const useAppStore = create<AppState>((set, get) => ({
     'z4444444-4444-4444-4444-444444444444': { in: 18, out: 1 }, // Gate D
   },
 
+  // Initial Data Fetcher from Supabase (with Realtime multi-browser sync)
+  initData: async () => {
+    try {
+      const res = await supabaseService.fetchInitialDataset();
+      if (res.success && res.data) {
+        const d = res.data;
+        set({
+          isLoadingInitialData: false,
+          isSupabaseConnected: true,
+          currentOrg: d.organizations[0] || INITIAL_ORG,
+          users: d.users.length ? d.users : INITIAL_USERS,
+          currentUser: d.users[0] || INITIAL_USERS[0],
+          venues: d.venues.length ? d.venues : INITIAL_VENUES,
+          events: d.events.length ? d.events : INITIAL_EVENTS,
+          activeEventId: d.events[0]?.id || INITIAL_EVENTS[0].id,
+          tickets: d.tickets.length ? d.tickets : INITIAL_TICKETS,
+          densityReadings: d.densityReadings.length ? d.densityReadings : INITIAL_DENSITY_READINGS,
+          incidents: d.incidents.length ? d.incidents : INITIAL_INCIDENTS,
+          alerts: d.alerts.length ? d.alerts : INITIAL_ALERTS,
+          wallets: Object.keys(d.wallets).length ? d.wallets : { [INITIAL_WALLET.user_id]: INITIAL_WALLET },
+          transactions: d.transactions.length ? d.transactions : INITIAL_TRANSACTIONS,
+        });
+
+        // Set up Realtime listener to sync changes across tabs/devices
+        supabaseService.subscribeToAllRealtime({
+          onAlert: (newAlert) => {
+            get().triggerAlert(newAlert);
+          },
+          onIncident: (updatedIncident) => {
+            set((state) => {
+              const exists = state.incidents.some((i) => i.id === updatedIncident.id);
+              if (exists) {
+                return {
+                  incidents: state.incidents.map((i) =>
+                    i.id === updatedIncident.id ? updatedIncident : i
+                  ),
+                };
+              }
+              return { incidents: [updatedIncident, ...state.incidents] };
+            });
+          },
+          onDensity: (newDensity) => {
+            set((state) => ({
+              densityReadings: state.densityReadings.map((r) =>
+                r.zone_id === newDensity.zone_id ? newDensity : r
+              ),
+            }));
+          },
+          onGateScan: (newScan) => {
+            set((state) => ({
+              gateScans: [newScan, ...state.gateScans.slice(0, 499)],
+            }));
+          },
+          onTicket: (updatedTicket) => {
+            set((state) => ({
+              tickets: state.tickets.map((t) =>
+                t.id === updatedTicket.id ? updatedTicket : t
+              ),
+            }));
+          },
+          onEvent: (updatedEvent) => {
+            set((state) => ({
+              events: state.events.map((e) =>
+                e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
+              ),
+            }));
+          },
+        });
+      } else {
+        // Fallback to offline demo mode
+        set({ isLoadingInitialData: false, isSupabaseConnected: false });
+      }
+    } catch (e) {
+      set({ isLoadingInitialData: false, isSupabaseConnected: false });
+    }
+  },
+
+  setCurrentUser: (user) => set({ currentUser: user }),
+  setUserRole: (role) => {
+    const user = get().users.find((u) => u.role === role) || {
+      ...get().currentUser,
+      role,
+    };
+    set({ currentUser: user });
+  },
+
   setActiveEventId: (eventId) => set({ activeEventId: eventId }),
   setSelectedZoneId: (zoneId) => set({ selectedZoneId: zoneId }),
   toggleSimulation: () => set((state) => ({ isSimulationActive: !state.isSimulationActive })),
@@ -188,7 +275,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dismissCriticalFlash: () => set({ criticalFlashAlert: null }),
 
   processGateScan: async ({ ticketId, gateId, qrHash, staffId, direction }) => {
-    const { tickets, activeEventId } = get();
+    const { tickets, activeEventId, isSupabaseConnected } = get();
     const ticket = tickets.find((t) => t.id === ticketId);
 
     if (!ticket) {
@@ -236,6 +323,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       scanned_at: new Date().toISOString(),
     };
 
+    // Write to Supabase
+    if (isSupabaseConnected) {
+      supabaseService.insertGateScan(newScan);
+      if (direction === 'in') {
+        supabaseService.updateTicketScanStatus(ticketId, staffId, gateId);
+        supabaseService.updateEventAttendance(activeEventId, 1);
+      }
+    }
+
     set((state) => {
       const updatedTickets = state.tickets.map((t) => (t.id === ticketId ? updatedTicket : t));
       const delta = direction === 'in' ? 1 : -1;
@@ -261,10 +357,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   triggerAlert: (alertData) => {
+    const rawAlert = alertData as any;
     const newAlert: Alert = {
       ...alertData,
-      id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      created_at: new Date().toISOString(),
+      id: rawAlert.id || `alert_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      created_at: rawAlert.created_at || new Date().toISOString(),
     };
 
     if (newAlert.severity === 'critical') {
@@ -280,11 +377,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       soundManager.playWarningAlert();
     }
 
+    // Write to Supabase if connected
+    if (get().isSupabaseConnected) {
+      supabaseService.insertAlert(newAlert);
+    }
+
     set((state) => ({ alerts: [newAlert, ...state.alerts] }));
   },
 
   acknowledgeAlert: (alertId, userId) => {
     const user = userId || get().currentUser.id;
+
+    if (get().isSupabaseConnected) {
+      supabaseService.acknowledgeAlert(alertId, user);
+    }
+
     set((state) => ({
       alerts: state.alerts.map((a) =>
         a.id === alertId
@@ -310,11 +417,19 @@ export const useAppStore = create<AppState>((set, get) => ({
       soundManager.playCriticalAlert();
     }
 
+    if (get().isSupabaseConnected) {
+      supabaseService.insertIncident(newIncident);
+    }
+
     set((state) => ({ incidents: [newIncident, ...state.incidents] }));
     return newIncident;
   },
 
   updateIncidentStatus: (incidentId, status, assignedTo) => {
+    if (get().isSupabaseConnected) {
+      supabaseService.updateIncident(incidentId, status, assignedTo);
+    }
+
     set((state) => ({
       incidents: state.incidents.map((i) => {
         if (i.id === incidentId) {
@@ -433,6 +548,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       event: get().events.find((e) => e.id === eventId),
     };
 
+    if (get().isSupabaseConnected) {
+      supabaseService.insertTicket(newTicket);
+    }
+
     set((state) => {
       const updatedEvents = state.events.map((e) => {
         if (e.id === eventId) {
@@ -493,6 +612,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       created_at: new Date().toISOString(),
     };
 
+    if (get().isSupabaseConnected) {
+      supabaseService.upsertWallet(updatedWallet);
+      supabaseService.insertTransaction(newTx);
+    }
+
     set((state) => ({
       wallets: { ...state.wallets, [user.id]: updatedWallet },
       transactions: [newTx, ...state.transactions],
@@ -527,6 +651,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       description,
       created_at: new Date().toISOString(),
     };
+
+    if (get().isSupabaseConnected) {
+      supabaseService.upsertWallet(updatedWallet);
+      supabaseService.insertTransaction(newTx);
+    }
 
     soundManager.playScanSuccess();
     set((state) => ({
@@ -597,13 +726,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: `wl_${Date.now()}`,
       created_at: new Date().toISOString(),
     };
+    supabaseService.insertWaitlist(entry);
     set((state) => ({ waitlist: [newEntry, ...state.waitlist] }));
   },
 
   runSimulationTick: () => {
     if (!get().isSimulationActive) return;
 
-    const { events, activeEventId, densityReadings, simulationTicks } = get();
+    const { events, activeEventId, densityReadings, simulationTicks, isSupabaseConnected } = get();
     const liveEvent = events.find((e) => e.id === activeEventId);
     if (!liveEvent || liveEvent.status !== 'live') return;
 
@@ -621,11 +751,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const randomGate = gates[Math.floor(Math.random() * gates.length)];
     const scanDelta = Math.floor(Math.random() * 4) + 2;
 
-    // Main Floor North density escalation curve:
-    // 0 -> 16 ticks (0-40s): 2.4 to 3.4 (Safe to Elevated)
-    // 16 -> 32 ticks (40-80s): 3.5 to 4.8 (Elevated to Warning) -> trigger warning
-    // 32 -> 44 ticks (80-110s): 4.9 to 5.7 (Warning to Critical) -> trigger critical flash
-    // 44 -> 48 ticks (110-120s): Egress open relief (drops back to 3.8)
+    // Main Floor North density escalation curve
     let targetNorthDensity = 2.4 + (cyclePos / 40) * 3.3;
     if (cyclePos >= 44) {
       targetNorthDensity = 3.6; // Egress gate relieved crowd
@@ -640,13 +766,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         else if (d >= 4.5) risk = 'warning';
         else if (d >= 3.0) risk = 'elevated';
 
-        return {
+        const reading = {
           ...r,
           density_per_sqm: d,
           risk_level: risk,
           estimated_count: Math.round(d * 600),
           timestamp: new Date().toISOString(),
         };
+
+        if (isSupabaseConnected && cyclePos % 4 === 0) {
+          supabaseService.insertZoneDensityReading(reading);
+        }
+
+        return reading;
       }
 
       // Other zones fluctuate naturally
@@ -667,7 +799,6 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Escalation trigger points
     if (cyclePos === 24) {
-      // Reached Warning (4.5/m²)
       get().triggerAlert({
         event_id: activeEventId,
         zone_id: 'z6666666-6666-6666-6666-666666666666',
@@ -680,7 +811,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         acknowledged_at: null,
       });
     } else if (cyclePos === 38) {
-      // Reached Critical Surge (5.6/m²) -> 2.5s Full Screen Red Flash + Siren
       get().triggerAlert({
         event_id: activeEventId,
         zone_id: 'z6666666-6666-6666-6666-666666666666',

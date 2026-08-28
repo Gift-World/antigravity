@@ -60,20 +60,6 @@ export const LiveCommandCenter: React.FC = () => {
 
   const event = events.find((e) => e.id === (id || activeEventId)) || events[0];
 
-  // Subscribe to Supabase Realtime telemetry channels
-  useEffect(() => {
-    const unsub = supabaseService.subscribeToLiveTelemetry(
-      event.id,
-      (newAlert) => triggerAlert(newAlert),
-      (newIncident) => {},
-      (newReading) => {},
-      (newScan) => {}
-    );
-    return () => {
-      unsub();
-    };
-  }, [event.id, triggerAlert]);
-
   useEffect(() => {
     if (id && id !== activeEventId) {
       setActiveEventId(id);
