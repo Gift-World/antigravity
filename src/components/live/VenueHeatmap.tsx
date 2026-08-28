@@ -7,6 +7,22 @@ import { AlertTriangle, ShieldAlert, HeartPulse, Smartphone, MapPin } from 'luci
 import { ZoneDetailModal } from './ZoneDetailModal';
 import { formatNumber } from '@/lib/utils';
 
+const DEFAULT_STADIUM_ZONES: VenueZone[] = [
+  { id: 'c1111111-1111-1111-1111-111111111111', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate A (Main North Turnstiles)', zone_type: 'entry_gate', capacity: 2500, sort_order: 1 },
+  { id: 'c2222222-2222-2222-2222-222222222222', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate B (East Public Entrance)', zone_type: 'entry_gate', capacity: 2500, sort_order: 2 },
+  { id: 'c3333333-3333-3333-3333-333333333333', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate C (South Express Gate)', zone_type: 'entry_gate', capacity: 2000, sort_order: 3 },
+  { id: 'c4444444-4444-4444-4444-444444444444', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate D (VIP & Artist Fast Track)', zone_type: 'entry_gate', capacity: 1000, sort_order: 4 },
+  { id: 'c5555555-5555-5555-5555-555555555555', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Stage & Pit Barrier', zone_type: 'stage', capacity: 1500, sort_order: 5 },
+  { id: 'c6666666-6666-6666-6666-666666666666', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Floor North (Front Pit)', zone_type: 'floor_section', capacity: 3500, sort_order: 6 },
+  { id: 'c7777777-7777-7777-7777-777777777777', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Floor South (General Pitch)', zone_type: 'floor_section', capacity: 4500, sort_order: 7 },
+  { id: 'c8888888-8888-8888-8888-888888888888', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'VIP Lounge East', zone_type: 'vip', capacity: 1200, sort_order: 8 },
+  { id: 'c9999999-9999-9999-9999-999999999999', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'VIP Lounge West & Skybox', zone_type: 'vip', capacity: 1200, sort_order: 9 },
+  { id: 'caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Medical Post Alpha (Red Cross)', zone_type: 'medical_post', capacity: 100, sort_order: 10 },
+  { id: 'cbbbbbb0-bbbb-bbbb-bbbb-bbbbbbbbbbbb', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Medical Post Bravo (Triage)', zone_type: 'medical_post', capacity: 100, sort_order: 11 },
+  { id: 'ccccccc0-cccc-cccc-cccc-cccccccccccc', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Food & Cashless Bar Court', zone_type: 'vendor_area', capacity: 1800, sort_order: 12 },
+  { id: 'cdddddd0-dddd-dddd-dddd-dddddddddddd', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Emergency Exit 1 & 2 (North)', zone_type: 'exit_gate', capacity: 4000, sort_order: 13 },
+];
+
 export const VenueHeatmap: React.FC = () => {
   const {
     events,
@@ -21,8 +37,10 @@ export const VenueHeatmap: React.FC = () => {
   const [inspectZone, setInspectZone] = useState<{ zone: VenueZone; reading: ZoneDensityReading } | null>(null);
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
-  const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id);
-  const zones = venueObj?.zones || [];
+  const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id) || venues[0];
+  const zones = (venueObj?.zones && venueObj.zones.length > 0)
+    ? venueObj.zones
+    : (venues.find((v) => v.zones && v.zones.length > 0)?.zones || DEFAULT_STADIUM_ZONES);
 
   // SVG Zone polygon definitions (Layout mapped for Nyayo National Stadium)
   const zoneSVGMappings: Record<

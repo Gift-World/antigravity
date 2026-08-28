@@ -1,5 +1,4 @@
-// src/routes/dashboard/events/CreateEvent.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +20,12 @@ export const CreateEvent: React.FC = () => {
   const [coverImageUrl, setCoverImageUrl] = useState(
     'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80'
   );
+
+  useEffect(() => {
+    if ((!venueId || venueId === '') && venues.length > 0) {
+      setVenueId(venues[0].id);
+    }
+  }, [venues, venueId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

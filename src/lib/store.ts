@@ -165,11 +165,74 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await supabaseService.fetchInitialDataset();
       if (res.success && res.data) {
         const d = res.data;
-        const populatedVenues = d.venues || [];
+        const DEFAULT_STADIUM_ZONES: VenueZone[] = [
+          { id: 'c1111111-1111-1111-1111-111111111111', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate A (Main North Turnstiles)', zone_type: 'entry_gate', capacity: 2500, sort_order: 1 },
+          { id: 'c2222222-2222-2222-2222-222222222222', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate B (East Public Entrance)', zone_type: 'entry_gate', capacity: 2500, sort_order: 2 },
+          { id: 'c3333333-3333-3333-3333-333333333333', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate C (South Express Gate)', zone_type: 'entry_gate', capacity: 2000, sort_order: 3 },
+          { id: 'c4444444-4444-4444-4444-444444444444', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Gate D (VIP & Artist Fast Track)', zone_type: 'entry_gate', capacity: 1000, sort_order: 4 },
+          { id: 'c5555555-5555-5555-5555-555555555555', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Stage & Pit Barrier', zone_type: 'stage', capacity: 1500, sort_order: 5 },
+          { id: 'c6666666-6666-6666-6666-666666666666', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Floor North (Front Pit)', zone_type: 'floor_section', capacity: 3500, sort_order: 6 },
+          { id: 'c7777777-7777-7777-7777-777777777777', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Main Floor South (General Pitch)', zone_type: 'floor_section', capacity: 4500, sort_order: 7 },
+          { id: 'c8888888-8888-8888-8888-888888888888', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'VIP Lounge East', zone_type: 'vip', capacity: 1200, sort_order: 8 },
+          { id: 'c9999999-9999-9999-9999-999999999999', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'VIP Lounge West & Skybox', zone_type: 'vip', capacity: 1200, sort_order: 9 },
+          { id: 'caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Medical Post Alpha (Red Cross)', zone_type: 'medical_post', capacity: 100, sort_order: 10 },
+          { id: 'cbbbbbb0-bbbb-bbbb-bbbb-bbbbbbbbbbbb', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Medical Post Bravo (Triage)', zone_type: 'medical_post', capacity: 100, sort_order: 11 },
+          { id: 'ccccccc0-cccc-cccc-cccc-cccccccccccc', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Food & Cashless Bar Court', zone_type: 'vendor_area', capacity: 1800, sort_order: 12 },
+          { id: 'cdddddd0-dddd-dddd-dddd-dddddddddddd', venue_id: 'b1111111-1111-1111-1111-111111111111', name: 'Emergency Exit 1 & 2 (North)', zone_type: 'exit_gate', capacity: 4000, sort_order: 13 },
+        ];
+
+        const FALLBACK_VENUES: Venue[] = [
+          {
+            id: 'b1111111-1111-1111-1111-111111111111',
+            organization_id: 'a1111111-1111-1111-1111-111111111111',
+            name: 'Nyayo National Stadium',
+            address: 'Aerodrome Rd, Nairobi',
+            city: 'Nairobi',
+            total_capacity: 18000,
+            created_at: new Date().toISOString(),
+            zones: DEFAULT_STADIUM_ZONES,
+          },
+          {
+            id: 'b2222222-2222-2222-2222-222222222222',
+            organization_id: 'a1111111-1111-1111-1111-111111111111',
+            name: 'KICC (Kenyatta Int. Convention Centre)',
+            address: 'Harambee Ave, CBD',
+            city: 'Nairobi',
+            total_capacity: 10000,
+            created_at: new Date().toISOString(),
+            zones: DEFAULT_STADIUM_ZONES.map(z => ({ ...z, venue_id: 'b2222222-2222-2222-2222-222222222222' })),
+          },
+          {
+            id: 'b3333333-3333-3333-3333-333333333333',
+            organization_id: 'a1111111-1111-1111-1111-111111111111',
+            name: 'Carnivore Grounds',
+            address: 'Langata Rd, Nairobi',
+            city: 'Nairobi',
+            total_capacity: 15000,
+            created_at: new Date().toISOString(),
+            zones: DEFAULT_STADIUM_ZONES.map(z => ({ ...z, venue_id: 'b3333333-3333-3333-3333-333333333333' })),
+          },
+          {
+            id: 'b4444444-4444-4444-4444-444444444444',
+            organization_id: 'a1111111-1111-1111-1111-111111111111',
+            name: 'Uhuru Gardens Memorial Park',
+            address: 'Langata Rd, Nairobi',
+            city: 'Nairobi',
+            total_capacity: 25000,
+            created_at: new Date().toISOString(),
+            zones: DEFAULT_STADIUM_ZONES.map(z => ({ ...z, venue_id: 'b4444444-4444-4444-4444-444444444444' })),
+          },
+        ];
+
+        const rawVenues = d.venues && d.venues.length > 0 ? d.venues : FALLBACK_VENUES;
+        const populatedVenues = rawVenues.map((v) => ({
+          ...v,
+          zones: (v.zones && v.zones.length > 0) ? v.zones : DEFAULT_STADIUM_ZONES,
+        }));
         const venueMap = new Map(populatedVenues.map((v) => [v.id, v]));
 
-        const populatedEvents = (d.events || []).map((e) => {
-          const matchedVenue = venueMap.get(e.venue_id) || e.venue;
+        const populatedEvents = (d.events && d.events.length > 0 ? d.events : []).map((e) => {
+          const matchedVenue = venueMap.get(e.venue_id) || populatedVenues[0];
           return {
             ...e,
             venue: matchedVenue,
@@ -178,9 +241,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         const firstEventId = populatedEvents[0]?.id || '';
         const firstUser = d.users[0] || {
-          id: 'user_admin',
-          organization_id: d.organizations[0]?.id || '',
-          full_name: 'Admin User',
+          id: '01111111-1111-1111-1111-111111111111',
+          organization_id: d.organizations[0]?.id || 'a1111111-1111-1111-1111-111111111111',
+          full_name: 'Brian Ochieng (Admin)',
           email: 'admin@antigravity.ke',
           role: 'super_admin' as const,
           created_at: new Date().toISOString(),
@@ -192,14 +255,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           isLoadingInitialData: false,
           isSupabaseConnected: true,
           currentOrg: d.organizations[0] || {
-            id: 'org_main',
-            name: 'Antigravity Organization',
+            id: 'a1111111-1111-1111-1111-111111111111',
+            name: 'Pulse Events Kenya',
             email: 'admin@antigravity.ke',
-            phone: '+254 700 000 000',
+            phone: '+254 712 345 678',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
-          users: d.users,
+          users: d.users && d.users.length > 0 ? d.users : [firstUser],
           currentUser: firstUser,
           venues: populatedVenues,
           events: populatedEvents,
