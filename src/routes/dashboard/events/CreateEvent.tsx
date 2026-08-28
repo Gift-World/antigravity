@@ -101,11 +101,15 @@ export const CreateEvent: React.FC = () => {
                   className="w-full bg-ag-black border border-ag-border focus:border-ag-blue rounded-lg p-3 text-sm text-white focus:outline-none transition-colors"
                   required
                 >
-                  {venues.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} ({v.city})
-                    </option>
-                  ))}
+                  {venues.length === 0 ? (
+                    <option value="">No venues available</option>
+                  ) : (
+                    venues.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.city})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>

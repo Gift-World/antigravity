@@ -206,6 +206,10 @@ export const supabaseService = {
     } catch (err) {}
   },
 
+  async updateIncidentStatus(incidentId: string, status: string, assignedTo?: string) {
+    return this.updateIncident(incidentId, status, assignedTo);
+  },
+
   async insertGateScan(scan: Omit<GateScan, 'id' | 'scanned_at'>) {
     try {
       const { data, error } = await supabase.from('gate_scans').insert([scan]).select().single();
@@ -230,9 +234,49 @@ export const supabaseService = {
     } catch (err) {}
   },
 
+  async updateTicketStatus(ticketId: string, status: string, gateId?: string, staffId?: string) {
+    try {
+      await supabase
+        .from('tickets')
+        .update({
+          status,
+          scanned_at: new Date().toISOString(),
+          scanned_by: staffId || null,
+          gate_id: gateId || null,
+        })
+        .eq('id', ticketId);
+    } catch (err) {}
+  },
+
   async insertTicket(ticket: Ticket) {
     try {
       await supabase.from('tickets').insert([ticket]);
+    } catch (err) {}
+  },
+
+  async insertEvent(event: Event) {
+    try {
+      const { venue, ...dbEvent } = event;
+      await supabase.from('events').insert([dbEvent]);
+    } catch (err) {}
+  },
+
+  async updateEventStatus(eventId: string, status: string) {
+    try {
+      await supabase.from('events').update({ status }).eq('id', eventId);
+    } catch (err) {}
+  },
+
+  async insertVenue(venue: Venue) {
+    try {
+      const { zones, ...dbVenue } = venue;
+      await supabase.from('venues').insert([dbVenue]);
+    } catch (err) {}
+  },
+
+  async insertVenueZone(zone: VenueZone) {
+    try {
+      await supabase.from('venue_zones').insert([zone]);
     } catch (err) {}
   },
 

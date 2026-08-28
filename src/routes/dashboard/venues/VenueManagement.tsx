@@ -89,75 +89,100 @@ export const VenueManagement: React.FC = () => {
       </div>
 
       {/* Venues Selector Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {venues.map((venue) => {
-          const isSelected = venue.id === selectedVenue.id;
-          return (
-            <Card
-              key={venue.id}
-              hover
-              onClick={() => setSelectedVenueId(venue.id)}
-              className={`p-4 cursor-pointer transition-all border-2 ${
-                isSelected
-                  ? 'border-ag-blue bg-ag-surface-hover shadow-lg shadow-ag-blue/10'
-                  : 'border-ag-border bg-ag-surface'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Building className="w-4 h-4 text-ag-blue" />
-                <span className="font-bold text-white text-sm truncate">{venue.name}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-ag-text-secondary">
-                <span>{venue.city}</span>
-                <span className="font-mono text-ag-green font-semibold">
-                  {formatNumber(venue.total_capacity)} Cap
-                </span>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Selected Venue Details & Zones */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h3 className="font-display font-bold text-lg text-white">{selectedVenue.name} Zones</h3>
-            <Badge variant="blue" size="sm">
-              {zones.length} Zones
-            </Badge>
+      {venues.length === 0 ? (
+        <Card className="p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+            <Building className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-white text-base">No Venues Found</h3>
+            <p className="text-xs text-ag-text-secondary max-w-sm mx-auto">
+              There are no venues in the database yet. Add your first venue to set up gates and zones.
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsAddVenueModalOpen(true)}
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Add Venue
+          </Button>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {venues.map((venue) => {
+              const isSelected = venue.id === selectedVenue?.id;
+              return (
+                <Card
+                  key={venue.id}
+                  hover
+                  onClick={() => setSelectedVenueId(venue.id)}
+                  className={`p-4 cursor-pointer transition-all border-2 ${
+                    isSelected
+                      ? 'border-ag-blue bg-ag-surface-hover shadow-lg shadow-ag-blue/10'
+                      : 'border-ag-border bg-ag-surface'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building className="w-4 h-4 text-ag-blue" />
+                    <span className="font-bold text-white text-sm truncate">{venue.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-ag-text-secondary">
+                    <span>{venue.city}</span>
+                    <span className="font-mono text-ag-green font-semibold">
+                      {formatNumber(venue.total_capacity)} Cap
+                    </span>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsAddZoneModalOpen(true)}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-            className="text-xs"
-          >
-            Add Zone
-          </Button>
-        </div>
-
-        {/* Zones Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {zones.map((zone) => (
-            <Card key={zone.id} className="p-4 space-y-2 border-ag-border bg-ag-surface">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-white">{zone.name}</h4>
-                  <span className="text-[11px] text-ag-text-muted capitalize">
-                    {zone.zone_type.replace('_', ' ')}
-                  </span>
+          {selectedVenue && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h3 className="font-display font-bold text-lg text-white">{selectedVenue.name} Zones</h3>
+                  <Badge variant="blue" size="sm">
+                    {zones.length} Zones
+                  </Badge>
                 </div>
-                <Badge variant="neutral" size="sm">
-                  {formatNumber(zone.capacity)} MAX
-                </Badge>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsAddZoneModalOpen(true)}
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  className="text-xs"
+                >
+                  Add Zone
+                </Button>
               </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+
+              {/* Zones Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {zones.map((zone) => (
+                  <Card key={zone.id} className="p-4 space-y-2 border-ag-border bg-ag-surface">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-bold text-sm text-white">{zone.name}</h4>
+                        <span className="text-[11px] text-ag-text-muted capitalize">
+                          {zone.zone_type.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <Badge variant="neutral" size="sm">
+                        {formatNumber(zone.capacity)} MAX
+                      </Badge>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Add Venue Modal */}
       <Modal isOpen={isAddVenueModalOpen} onClose={() => setIsAddVenueModalOpen(false)} title="Add New Venue">

@@ -134,7 +134,24 @@ export const DashboardHome: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {events.map((event) => {
+            {events.length === 0 ? (
+              <Card className="p-8 text-center space-y-3 border-ag-border bg-ag-surface">
+                <Calendar className="w-8 h-8 text-ag-text-muted mx-auto" />
+                <h4 className="font-bold text-white text-base">No Events in Database</h4>
+                <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
+                  Create your first event to start monitoring live crowd density and selling tickets.
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate('/dashboard/events/create')}
+                  leftIcon={<Plus className="w-4 h-4" />}
+                >
+                  Create Event
+                </Button>
+              </Card>
+            ) : (
+              events.map((event) => {
               const totalCap = event.max_capacity;
               const currentAtt = event.current_attendance;
               const percent = Math.min(100, Math.round((currentAtt / totalCap) * 100));
@@ -217,7 +234,7 @@ export const DashboardHome: React.FC = () => {
                   </div>
                 </Card>
               );
-            })}
+            }))}
           </div>
         </div>
 

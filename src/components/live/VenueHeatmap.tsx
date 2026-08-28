@@ -3,11 +3,9 @@ import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { getDensityColor } from '@/lib/density';
 import { VenueZone, ZoneDensityReading } from '@/types/database';
-import { AlertTriangle, ShieldAlert, HeartPulse, Smartphone } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, HeartPulse, Smartphone, MapPin } from 'lucide-react';
 import { ZoneDetailModal } from './ZoneDetailModal';
 import { formatNumber } from '@/lib/utils';
-
-import { NYAYO_ZONES } from '@/lib/seedData';
 
 export const VenueHeatmap: React.FC = () => {
   const {
@@ -24,7 +22,7 @@ export const VenueHeatmap: React.FC = () => {
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
   const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id);
-  const zones = venueObj?.zones && venueObj.zones.length > 0 ? venueObj.zones : NYAYO_ZONES;
+  const zones = venueObj?.zones || [];
 
   // SVG Zone polygon definitions (Layout mapped for Nyayo National Stadium)
   const zoneSVGMappings: Record<
@@ -133,16 +131,30 @@ export const VenueHeatmap: React.FC = () => {
     return (
       densityReadings.find((r) => r.zone_id === zoneId) || {
         id: `dr_${zoneId}`,
-        event_id: activeEventId,
+        event_id: activeEvent?.id || '',
         zone_id: zoneId,
         timestamp: new Date().toISOString(),
-        estimated_count: 500,
-        density_per_sqm: 1.8,
+        estimated_count: 0,
+        density_per_sqm: 1.0,
         risk_level: 'safe',
         source: 'scan_count',
       }
     );
   };
+
+  if (!activeEvent || zones.length === 0) {
+    return (
+      <div className="relative w-full h-full flex flex-col items-center justify-center bg-ag-surface/40 border border-ag-border rounded-2xl p-8 text-center text-ag-text-secondary font-sans">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mb-3">
+          <MapPin className="w-8 h-8 text-ag-text-muted" />
+        </div>
+        <h3 className="font-bold text-white text-base">No venue data loaded</h3>
+        <p className="text-xs text-ag-text-muted mt-1 max-w-xs">
+          No venue zones configured for this event. Configure zones in the Venues section to view live crowd density.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full flex flex-col bg-ag-surface/40 border border-ag-border rounded-2xl overflow-hidden select-none font-sans">
@@ -222,7 +234,7 @@ export const VenueHeatmap: React.FC = () => {
             const isCritical = reading.density_per_sqm >= 5.5;
 
             // Calculate percentage capacity
-            const cap = svgData.capacity || 2000;
+            const cap = svgData.capacity || zone.capacity || 2000;
             const count = reading.estimated_count;
             const percentFull = Math.min(100, Math.round((count / cap) * 100));
 
@@ -262,7 +274,7 @@ export const VenueHeatmap: React.FC = () => {
                   fontWeight="700"
                   className="pointer-events-none drop-shadow-md select-none font-sans"
                 >
-                  {svgData.displayName}
+                  {svgData.displayName || zone.name}
                 </text>
 
                 {/* Percentage & Count (Friendly) */}

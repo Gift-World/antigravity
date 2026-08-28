@@ -5,15 +5,12 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Link } from 'react-router-dom';
 import {
   Calendar,
   MapPin,
   ShieldCheck,
-  Smartphone,
-  Sparkles,
   Ticket as TicketIcon,
-  RefreshCw,
-  Lock,
 } from 'lucide-react';
 
 export const AttendeeTicket: React.FC = () => {
@@ -23,7 +20,26 @@ export const AttendeeTicket: React.FC = () => {
   const userTicket =
     tickets.find((t) => t.attendee_id === currentUser.id) || tickets[0];
 
-  const [isWatermarkHovered, setIsWatermarkHovered] = useState(false);
+  if (!userTicket || !activeEvent) {
+    return (
+      <div className="p-8 text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+          <TicketIcon className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-bold text-white text-base">No Tickets Found</h3>
+          <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
+            You don't have any tickets yet. Browse events to get your smart event pass.
+          </p>
+        </div>
+        <Link to="/app/events">
+          <Button variant="primary" size="md" className="font-bold">
+            Browse Events
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   const qrPayload = JSON.stringify({
     t: userTicket.id,
@@ -33,11 +49,11 @@ export const AttendeeTicket: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* Smart Pass Container Card */}
       <Card className="p-5 bg-gradient-to-b from-ag-surface to-ag-black border-2 border-ag-border/80 shadow-2xl relative overflow-hidden text-center space-y-4">
         {/* Holographic Security Top Ribbon */}
-        <div className="flex items-center justify-between pb-3 border-b border-ag-border text-xs font-mono">
+        <div className="flex items-center justify-between pb-3 border-b border-ag-border text-xs">
           <div className="flex items-center gap-1.5 text-ag-green font-bold">
             <ShieldCheck className="w-4 h-4" />
             <span>DEVICE-BOUND PASS</span>
@@ -52,21 +68,21 @@ export const AttendeeTicket: React.FC = () => {
           <h3 className="font-display font-bold text-xl text-white tracking-wide">
             {activeEvent.title}
           </h3>
-          <div className="text-xs text-ag-text-secondary font-mono flex items-center justify-center gap-2">
+          <div className="text-xs text-ag-text-secondary flex items-center justify-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-ag-blue" />
             <span>{new Date(activeEvent.event_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             <span>•</span>
             <MapPin className="w-3.5 h-3.5 text-ag-green" />
-            <span>{activeEvent.venue?.name || 'Nyayo Stadium'}</span>
+            <span>{activeEvent.venue?.name || 'Venue'}</span>
           </div>
-          <div className="pt-2 text-sm font-semibold text-white font-mono">
-            Attendee: <strong className="text-ag-blue">{currentUser.full_name}</strong>
+          <div className="pt-2 text-sm font-semibold text-white">
+            Attendee: <strong className="text-ag-blue">{currentUser.full_name || 'Guest'}</strong>
           </div>
         </div>
 
         {/* Large Centered QR Code with Subtle ANTIGRAVITY Watermark */}
         <div className="relative py-4 flex items-center justify-center">
-          <div className="p-4 bg-white rounded-[16px] shadow-2xl relative group inline-block border-4 border-ag-blue/30">
+          <div className="p-4 bg-white rounded-2xl shadow-2xl relative group inline-block border-4 border-ag-blue/30">
             <QRCodeSVG
               value={qrPayload}
               size={210}
@@ -98,22 +114,8 @@ export const AttendeeTicket: React.FC = () => {
           </div>
         </div>
 
-        {/* Cryptographic Hash & Security Bar */}
-        <div className="p-2.5 rounded bg-ag-black/70 border border-ag-border text-center space-y-1">
-          <div className="text-[10px] font-mono text-ag-text-muted uppercase">
-            SHA-256 Pass Hash
-          </div>
-          <div className="text-[11px] font-mono text-ag-green truncate px-2 font-bold">
-            {userTicket.qr_code_hash}
-          </div>
-        </div>
-
-        {/* Dynamic Holographic Watermark Bar */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-ag-text-secondary pt-2 border-t border-ag-border">
-          <span>Pass ID: #{userTicket.id.substring(0, 8)}</span>
-          <span className="text-ag-blue flex items-center gap-1">
-            <Lock className="w-3 h-3" /> Turnstile Auto-Sync
-          </span>
+        <div className="text-xs text-ag-text-muted">
+          Pass ID: #{userTicket.id.substring(0, 8)} • Scan at entrance turnstiles
         </div>
       </Card>
     </div>

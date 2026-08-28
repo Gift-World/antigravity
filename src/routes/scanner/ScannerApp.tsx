@@ -29,14 +29,18 @@ export const ScannerApp: React.FC = () => {
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
-  const gates = [
-    { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (Main North)' },
-    { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East Public)' },
-    { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South Express)' },
-    { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP)' },
-  ];
+  const venueGates = activeEvent?.venue?.zones?.filter((z) => z.zone_type === 'entry_gate') || [];
+  const gates =
+    venueGates.length > 0
+      ? venueGates.map((g) => ({ id: g.id, name: g.name }))
+      : [
+          { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (Main North)' },
+          { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East Public)' },
+          { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South Express)' },
+          { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP)' },
+        ];
 
-  const [selectedGate, setSelectedGate] = useState(gates[0].id);
+  const [selectedGate, setSelectedGate] = useState(gates[0]?.id || 'c1111111-1111-1111-1111-111111111111');
   const [scanResult, setScanResult] = useState<{
     status: 'idle' | 'success' | 'error';
     ticket?: Ticket;

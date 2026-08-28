@@ -88,19 +88,42 @@ export const EventList: React.FC = () => {
 
       {/* Events Table / Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredEvents.map((event) => {
-          const isLive = event.status === 'live';
-          const totalRevenue = event.ticket_tiers.reduce(
-            (acc, t) => acc + t.price * t.sold,
-            0
-          );
-          const percent = Math.min(
-            100,
-            Math.round((event.current_attendance / event.max_capacity) * 100)
-          );
+        {filteredEvents.length === 0 ? (
+          <Card className="col-span-full p-12 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-white text-base">No Events Found</h3>
+              <p className="text-xs text-ag-text-secondary max-w-sm mx-auto">
+                {events.length === 0
+                  ? 'No events in the database yet. Create your first event to get started.'
+                  : 'No events match your current search and filter.'}
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => navigate('/dashboard/events/create')}
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Create Event
+            </Button>
+          </Card>
+        ) : (
+          filteredEvents.map((event) => {
+            const isLive = event.status === 'live';
+            const totalRevenue = event.ticket_tiers.reduce(
+              (acc, t) => acc + t.price * t.sold,
+              0
+            );
+            const percent = Math.min(
+              100,
+              Math.round((event.current_attendance / event.max_capacity) * 100)
+            );
 
-          return (
-            <Card key={event.id} className="space-y-4 relative overflow-hidden flex flex-col justify-between">
+            return (
+              <Card key={event.id} className="space-y-4 relative overflow-hidden flex flex-col justify-between">
               <div>
                 {/* Status & Date Top Row */}
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -203,7 +226,7 @@ export const EventList: React.FC = () => {
               </div>
             </Card>
           );
-        })}
+        }))}
       </div>
     </div>
   );

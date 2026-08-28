@@ -36,8 +36,22 @@ export const AnalyticsReports: React.FC = () => {
   const { events, activeEventId, incidents, alerts, densityReadings, gateScans } = useAppStore();
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
-  const [selectedEventId, setSelectedEventId] = useState(activeEvent.id);
+  const [selectedEventId, setSelectedEventId] = useState(activeEvent?.id || '');
   const currentEvent = events.find((e) => e.id === selectedEventId) || activeEvent;
+
+  if (!currentEvent) {
+    return (
+      <div className="p-12 text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+          <BarChart3 className="w-8 h-8" />
+        </div>
+        <h3 className="font-bold text-white text-lg">No Event Reports Available</h3>
+        <p className="text-xs text-ag-text-secondary max-w-sm mx-auto">
+          There are no events in the database yet. Run or complete an event to generate safety clearance reports.
+        </p>
+      </div>
+    );
+  }
 
   // Density curves over time
   const densityTimelineData = [

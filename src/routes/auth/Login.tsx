@@ -93,28 +93,26 @@ export const Login: React.FC = () => {
             </Button>
           </form>
 
-          {/* Quick 1-Click Demo Profiles */}
-          <div className="pt-3 border-t border-ag-border space-y-2">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-ag-text-muted text-center">
-              1-Click Demo Profiles (Pre-Authenticated)
+          {/* Role switcher from real database users */}
+          {users.length > 0 && (
+            <div className="pt-3 border-t border-ag-border space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-ag-text-muted text-center">
+                Switch Role Profiles
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {users.slice(0, 4).map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => handleQuickDemoSwitch(u.email)}
+                    className="p-2 bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border rounded text-ag-blue text-left transition-colors truncate font-semibold"
+                  >
+                    👤 {u.full_name}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSwitch('admin@antigravity.ke')}
-                className="p-2 bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border rounded text-ag-blue text-left transition-colors truncate font-semibold"
-              >
-                👤 Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSwitch('evans.security@antigravity.ke')}
-                className="p-2 bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border rounded text-ag-yellow text-left transition-colors truncate font-semibold"
-              >
-                🛡️ Security Lead
-              </button>
-            </div>
-          </div>
+          )}
         </Card>
 
         {/* Footer */}

@@ -66,6 +66,25 @@ export const LiveCommandCenter: React.FC = () => {
     return () => clearInterval(timer);
   }, [event]);
 
+  if (!event) {
+    return (
+      <div className="h-screen w-screen bg-ag-black text-white flex flex-col items-center justify-center p-6 text-center font-sans space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-ag-surface border border-ag-border flex items-center justify-center">
+          <Activity className="w-8 h-8 text-ag-text-muted" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="font-display font-bold text-2xl">No Live Events Found</h2>
+          <p className="text-sm text-ag-text-secondary max-w-sm">
+            There are no events loaded from the database. Create your first event to access Live View.
+          </p>
+        </div>
+        <Button variant="primary" onClick={() => navigate('/dashboard/events')}>
+          Go to Events
+        </Button>
+      </div>
+    );
+  }
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});

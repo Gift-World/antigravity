@@ -70,41 +70,63 @@ export const TeamManagement: React.FC = () => {
       </div>
 
       {/* Staff Roster Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map((member) => (
-          <Card key={member.id} className="p-4 space-y-3 flex flex-col justify-between border-ag-border bg-ag-surface">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-ag-border bg-ag-black shrink-0">
-                  <img
-                    src={member.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120'}
-                    alt={member.full_name}
-                    className="w-full h-full object-cover"
-                  />
+      {users.length === 0 ? (
+        <Card className="p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+            <Users className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-white text-base">No Team Members Found</h3>
+            <p className="text-xs text-ag-text-secondary max-w-sm mx-auto">
+              Invite event managers, security personnel, and medics to coordinate crowd safety.
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsInviteModalOpen(true)}
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Invite Member
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {users.map((member) => (
+            <Card key={member.id} className="p-4 space-y-3 flex flex-col justify-between border-ag-border bg-ag-surface">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-ag-border bg-ag-black shrink-0">
+                    <img
+                      src={member.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120'}
+                      alt={member.full_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-sm text-white truncate">{member.full_name}</h4>
+                    <div className="text-xs text-ag-text-secondary truncate">{member.email}</div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-sm text-white truncate">{member.full_name}</h4>
-                  <div className="text-xs text-ag-text-secondary truncate">{member.email}</div>
+
+                <div className="flex items-center gap-2">
+                  <Badge variant="blue" size="sm" className="flex items-center gap-1">
+                    {getRoleIcon(member.role)}
+                    <span>{member.role.replace('_', ' ').toUpperCase()}</span>
+                  </Badge>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Badge variant="blue" size="sm" className="flex items-center gap-1">
-                  {getRoleIcon(member.role)}
-                  <span>{member.role.replace('_', ' ').toUpperCase()}</span>
-                </Badge>
+              <div className="pt-2 border-t border-ag-border text-xs text-ag-text-muted flex items-center justify-between">
+                <span>{member.phone || '+254 700 000 000'}</span>
+                <span className="text-ag-green font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Active
+                </span>
               </div>
-            </div>
-
-            <div className="pt-2 border-t border-ag-border text-xs text-ag-text-muted flex items-center justify-between">
-              <span>{member.phone || '+254 700 000 000'}</span>
-              <span className="text-ag-green font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Active
-              </span>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Invite Modal */}
       <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title="Invite Team Member">

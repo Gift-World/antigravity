@@ -60,11 +60,20 @@ export const AttendeeEvents: React.FC = () => {
       <div className="space-y-4">
         <h3 className="font-display font-bold text-base text-white">Featured Live Events</h3>
 
-        {publishedEvents.map((event) => (
-          <Card
-            key={event.id}
-            className="p-0 overflow-hidden bg-ag-surface border-ag-border shadow-md"
-          >
+        {publishedEvents.length === 0 ? (
+          <Card className="p-8 text-center space-y-3 border-ag-border bg-ag-surface">
+            <Calendar className="w-8 h-8 text-ag-text-muted mx-auto" />
+            <h4 className="font-bold text-white text-base">No Upcoming Events</h4>
+            <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
+              There are no published events available for booking at this moment. Please check back soon.
+            </p>
+          </Card>
+        ) : (
+          publishedEvents.map((event) => (
+            <Card
+              key={event.id}
+              className="p-0 overflow-hidden bg-ag-surface border-ag-border shadow-md"
+            >
             {/* Event Cover Photo */}
             <div className="h-40 relative bg-ag-black">
               <img
@@ -127,7 +136,7 @@ export const AttendeeEvents: React.FC = () => {
               </div>
             </div>
           </Card>
-        ))}
+        )))}
       </div>
 
       {/* M-Pesa Payment STK Push Modal */}

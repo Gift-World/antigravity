@@ -3,14 +3,13 @@ import React, { useState, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { NYAYO_ZONES } from '@/lib/seedData';
 import {
   Compass,
-  AlertTriangle,
   ArrowUp,
   ShieldCheck,
   CheckCircle2,
   PhoneCall,
+  MapPin,
 } from 'lucide-react';
 
 export const AttendeeSafety: React.FC = () => {
@@ -27,7 +26,7 @@ export const AttendeeSafety: React.FC = () => {
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
   const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id);
-  const allZones = venueObj?.zones && venueObj.zones.length > 0 ? venueObj.zones : NYAYO_ZONES;
+  const allZones = venueObj?.zones || [];
 
   // Gate to zone mapping and nearest exit metadata
   const gateToZoneMap: Record<string, { zoneId: string; exitText: string; exitDistance: string }> = {
@@ -80,11 +79,10 @@ export const AttendeeSafety: React.FC = () => {
 
   const currentZoneReading =
     densityReadings.find((r) => r.zone_id === targetZoneId) ||
-    highestDensityReading ||
-    densityReadings[0];
+    highestDensityReading;
 
   const matchedZone = allZones.find((z) => z.id === currentZoneReading?.zone_id);
-  const zoneDisplayName = matchedZone?.name || 'Main Floor (Front Area)';
+  const zoneDisplayName = matchedZone?.name || (currentZoneReading ? 'Main Floor Area' : 'Main Venue Floor');
 
   const [sosProgress, setSosProgress] = useState(0);
   const [isSosTriggered, setIsSosTriggered] = useState(false);
@@ -119,6 +117,20 @@ export const AttendeeSafety: React.FC = () => {
       setSosProgress(0);
     }
   };
+
+  if (!activeEvent) {
+    return (
+      <div className="p-8 text-center space-y-3 font-sans">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+          <MapPin className="w-8 h-8" />
+        </div>
+        <h3 className="font-bold text-white text-base">No Active Event Safety Data</h3>
+        <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
+          Safety telemetry and nearest exit routes will appear here when you are at an active event.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 font-sans">

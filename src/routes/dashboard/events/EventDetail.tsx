@@ -44,8 +44,26 @@ export const EventDetail: React.FC = () => {
   const [ticketSearch, setTicketSearch] = useState('');
 
   const event = events.find((e) => e.id === (id || activeEventId)) || events[0];
-  const eventTickets = tickets.filter((t) => t.event_id === event?.id || true);
-  const eventIncidents = incidents.filter((i) => i.event_id === event?.id || true);
+
+  if (!event) {
+    return (
+      <div className="p-12 text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-text-muted">
+          <Calendar className="w-8 h-8" />
+        </div>
+        <h3 className="font-bold text-white text-lg">Event Not Found</h3>
+        <p className="text-xs text-ag-text-secondary max-w-sm mx-auto">
+          This event could not be found or has not been created yet in the database.
+        </p>
+        <Button variant="primary" size="md" onClick={() => navigate('/dashboard/events')}>
+          Back to Events
+        </Button>
+      </div>
+    );
+  }
+
+  const eventTickets = tickets.filter((t) => t.event_id === event.id);
+  const eventIncidents = incidents.filter((i) => i.event_id === event.id);
 
   const filteredTickets = eventTickets.filter((t) => {
     return (
@@ -56,7 +74,7 @@ export const EventDetail: React.FC = () => {
   });
 
   const isLive = event.status === 'live';
-  const totalRevenue = event.ticket_tiers.reduce((sum, t) => sum + t.price * t.sold, 0);
+  const totalRevenue = (event.ticket_tiers || []).reduce((sum, t) => sum + t.price * t.sold, 0);
 
   const salesChartData = [
     { time: '12:00', attendance: 1200 },
