@@ -172,10 +172,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   criticalFlashAlert: null,
   simulationTicks: 0,
   scansPerMinuteByGate: {
-    'z1111111-1111-1111-1111-111111111111': { in: 48, out: 4 }, // Gate A
-    'z2222222-2222-2222-2222-222222222222': { in: 62, out: 7 }, // Gate B
-    'z3333333-3333-3333-3333-333333333333': { in: 34, out: 2 }, // Gate C
-    'z4444444-4444-4444-4444-444444444444': { in: 18, out: 1 }, // Gate D
+    'c1111111-1111-1111-1111-111111111111': { in: 48, out: 4 }, // Gate A
+    'c2222222-2222-2222-2222-222222222222': { in: 62, out: 7 }, // Gate B
+    'c3333333-3333-3333-3333-333333333333': { in: 34, out: 2 }, // Gate C
+    'c4444444-4444-4444-4444-444444444444': { in: 18, out: 1 }, // Gate D
   },
 
   // Initial Data Fetcher from Supabase (with Realtime multi-browser sync)
@@ -647,7 +647,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       event_id: activeEvent.id,
       amount,
       transaction_type: 'purchase',
-      vendor_zone_id: vendorZoneId || 'zccccccc-cccc-cccc-cccc-cccccccccccc',
+      vendor_zone_id: vendorZoneId || 'ccccccc0-cccc-cccc-cccc-cccccccccccc',
       description,
       created_at: new Date().toISOString(),
     };
@@ -696,7 +696,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().triggerAlert({
       event_id: activeEventId,
       alert_type: 'theft_detected',
-      zone_id: 'z6666666-6666-6666-6666-666666666666',
+      zone_id: 'c6666666-6666-6666-6666-666666666666',
       message: alertMsg,
       severity: 'critical',
       target_audience: 'security',
@@ -707,13 +707,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     get().createIncident({
       event_id: activeEventId,
-      zone_id: 'z6666666-6666-6666-6666-666666666666',
+      zone_id: 'c6666666-6666-6666-6666-666666666666',
       incident_type: 'phone_theft',
       severity: 'high',
       title: 'Active Guardian Alarm SOS',
       description: alertMsg,
       reported_by: get().currentUser.id,
-      assigned_to: 'u3333333-3333-3333-3333-333333333333',
+      assigned_to: '03333333-3333-3333-3333-333333333333',
       status: 'open',
       latitude: -1.30392,
       longitude: 36.8231,
@@ -743,10 +743,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Simulate 2-5 scans at turnstiles every tick
     const gates = [
-      'z1111111-1111-1111-1111-111111111111',
-      'z2222222-2222-2222-2222-222222222222',
-      'z3333333-3333-3333-3333-333333333333',
-      'z4444444-4444-4444-4444-444444444444',
+      'c1111111-1111-1111-1111-111111111111',
+      'c2222222-2222-2222-2222-222222222222',
+      'c3333333-3333-3333-3333-333333333333',
+      'c4444444-4444-4444-4444-444444444444',
     ];
     const randomGate = gates[Math.floor(Math.random() * gates.length)];
     const scanDelta = Math.floor(Math.random() * 4) + 2;
@@ -758,7 +758,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     const updatedReadings = densityReadings.map((r) => {
-      const isMainFloorNorth = r.zone_id === 'z6666666-6666-6666-6666-666666666666';
+      const isMainFloorNorth = r.zone_id === 'c6666666-6666-6666-6666-666666666666';
       if (isMainFloorNorth) {
         const d = Number(targetNorthDensity.toFixed(2));
         let risk: ZoneDensityReading['risk_level'] = 'safe';
@@ -801,7 +801,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (cyclePos === 24) {
       get().triggerAlert({
         event_id: activeEventId,
-        zone_id: 'z6666666-6666-6666-6666-666666666666',
+        zone_id: 'c6666666-6666-6666-6666-666666666666',
         alert_type: 'density_warning',
         message: 'DENSITY WARNING: Main Floor North reached 4.6 people/m². Prepare holding lanes.',
         severity: 'warning',
@@ -813,7 +813,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     } else if (cyclePos === 38) {
       get().triggerAlert({
         event_id: activeEventId,
-        zone_id: 'z6666666-6666-6666-6666-666666666666',
+        zone_id: 'c6666666-6666-6666-6666-666666666666',
         alert_type: 'density_critical',
         message: 'CRITICAL CRUSH RISK: Main Floor North at 5.6 people/m²! Open Emergency Exit 1 & 2 immediately.',
         severity: 'critical',

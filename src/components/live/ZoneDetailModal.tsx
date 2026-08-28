@@ -59,7 +59,7 @@ export const ZoneDetailModal: React.FC<ZoneDetailModalProps> = ({ zone, reading,
       title: `Surge Control Dispatched to ${zone.name}`,
       description: `Rapid response squad dispatched to monitor barrier pressure and alleviate bottlenecks.`,
       reported_by: currentUser.id,
-      assigned_to: 'u3333333-3333-3333-3333-333333333333',
+      assigned_to: '03333333-3333-3333-3333-333333333333',
       status: 'responding',
     });
     onClose();

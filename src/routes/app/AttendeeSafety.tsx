@@ -21,7 +21,7 @@ export const AttendeeSafety: React.FC = () => {
 
   // Attendee assigned to Main Floor North (Sector 6)
   const currentZoneReading =
-    densityReadings.find((r) => r.zone_id === 'z6666666-6666-6666-6666-666666666666') ||
+    densityReadings.find((r) => r.zone_id === 'c6666666-6666-6666-6666-666666666666') ||
     densityReadings[0];
 
   const [sosProgress, setSosProgress] = useState(0);

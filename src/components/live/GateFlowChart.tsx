@@ -19,10 +19,10 @@ export const GateFlowChart: React.FC = () => {
 
   // Specific 4 gates: Gate A, Gate B, Gate C, Gate D
   const gatesConfig = [
-    { id: 'z1111111-1111-1111-1111-111111111111', name: 'Gate A (North)' },
-    { id: 'z2222222-2222-2222-2222-222222222222', name: 'Gate B (East)' },
-    { id: 'z3333333-3333-3333-3333-333333333333', name: 'Gate C (South)' },
-    { id: 'z4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP)' },
+    { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (North)' },
+    { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East)' },
+    { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South)' },
+    { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP)' },
   ];
 
   const chartData = gatesConfig.map((gate) => {

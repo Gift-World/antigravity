@@ -21,13 +21,13 @@ export const CommandTicker: React.FC = () => {
     },
     {
       label: 'GATE A INGRESS',
-      value: `${scansPerMinuteByGate['z1111111-1111-1111-1111-111111111111']?.in || 48} /min`,
+      value: `${scansPerMinuteByGate['c1111111-1111-1111-1111-111111111111']?.in || 48} /min`,
       icon: <Radio className="w-3 h-3 text-ag-blue" />,
       color: 'text-ag-blue',
     },
     {
       label: 'GATE B INGRESS',
-      value: `${scansPerMinuteByGate['z2222222-2222-2222-2222-222222222222']?.in || 62} /min`,
+      value: `${scansPerMinuteByGate['c2222222-2222-2222-2222-222222222222']?.in || 62} /min`,
       icon: <Radio className="w-3 h-3 text-ag-blue" />,
       color: 'text-ag-blue',
     },

@@ -33,89 +33,89 @@ export const VenueHeatmap: React.FC = () => {
     }
   > = {
     // Gate A (Main North)
-    'z1111111-1111-1111-1111-111111111111': {
+    'c1111111-1111-1111-1111-111111111111': {
       d: 'M 180,30 L 320,30 L 300,75 L 200,75 Z',
       labelPos: { x: 250, y: 55 },
       type: 'Gate A',
       iconType: 'gate',
     },
     // Gate B (East Public)
-    'z2222222-2222-2222-2222-222222222222': {
+    'c2222222-2222-2222-2222-222222222222': {
       d: 'M 720,160 L 780,180 L 780,300 L 720,280 Z',
       labelPos: { x: 750, y: 240 },
       type: 'Gate B',
       iconType: 'gate',
     },
     // Gate C (South Express)
-    'z3333333-3333-3333-3333-333333333333': {
+    'c3333333-3333-3333-3333-333333333333': {
       d: 'M 720,320 L 780,340 L 780,440 L 720,420 Z',
       labelPos: { x: 750, y: 380 },
       type: 'Gate C',
       iconType: 'gate',
     },
     // Gate D (VIP / Artist Fast Track)
-    'z4444444-4444-4444-4444-444444444444': {
+    'c4444444-4444-4444-4444-444444444444': {
       d: 'M 20,180 L 80,160 L 80,260 L 20,280 Z',
       labelPos: { x: 50, y: 220 },
       type: 'Gate D',
       iconType: 'gate',
     },
     // Stage & Front Barrier
-    'z5555555-5555-5555-5555-555555555555': {
+    'c5555555-5555-5555-5555-555555555555': {
       d: 'M 310,85 L 490,85 L 470,145 L 330,145 Z',
       labelPos: { x: 400, y: 115 },
       type: 'Main Stage',
       iconType: 'stage',
     },
     // Main Floor North (Front Pit)
-    'z6666666-6666-6666-6666-666666666666': {
+    'c6666666-6666-6666-6666-666666666666': {
       d: 'M 230,155 L 570,155 L 560,280 L 240,280 Z',
       labelPos: { x: 400, y: 215 },
       type: 'Main Floor North',
     },
     // Main Floor South (General Pitch)
-    'z7777777-7777-7777-7777-777777777777': {
+    'c7777777-7777-7777-7777-777777777777': {
       d: 'M 235,290 L 565,290 L 550,425 L 250,425 Z',
       labelPos: { x: 400, y: 355 },
       type: 'Main Floor South',
     },
     // VIP Lounge East
-    'z8888888-8888-8888-8888-888888888888': {
+    'c8888888-8888-8888-8888-888888888888': {
       d: 'M 580,155 L 700,165 L 690,280 L 570,280 Z',
       labelPos: { x: 635, y: 220 },
       type: 'VIP East',
       iconType: 'vip',
     },
     // VIP Lounge West & Skybox
-    'z9999999-9999-9999-9999-999999999999': {
+    'c9999999-9999-9999-9999-999999999999': {
       d: 'M 100,165 L 220,155 L 230,280 L 110,280 Z',
       labelPos: { x: 165, y: 220 },
       type: 'VIP West',
       iconType: 'vip',
     },
     // Medical Post Alpha (Red Cross)
-    'zaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa': {
+    'caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa': {
       d: 'M 100,300 L 210,300 L 205,375 L 95,375 Z',
       labelPos: { x: 150, y: 338 },
       type: 'Med Post Alpha',
       iconType: 'medical',
     },
     // Medical Post Bravo (Triage)
-    'zbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb': {
+    'cbbbbbb0-bbbb-bbbb-bbbb-bbbbbbbbbbbb': {
       d: 'M 590,300 L 700,300 L 705,375 L 595,375 Z',
       labelPos: { x: 650, y: 338 },
       type: 'Med Post Bravo',
       iconType: 'medical',
     },
     // Food & Cashless Bar Court
-    'zccccccc-cccc-cccc-cccc-cccccccccccc': {
+    'ccccccc0-cccc-cccc-cccc-cccccccccccc': {
       d: 'M 240,435 L 560,435 L 540,490 L 260,490 Z',
       labelPos: { x: 400, y: 462 },
       type: 'Cashless Food Court',
       iconType: 'food',
     },
     // Emergency Exit 1 & 2
-    'zddddddd-dddd-dddd-dddd-dddddddddddd': {
+    'cdddddd0-dddd-dddd-dddd-dddddddddddd': {
       d: 'M 480,30 L 620,30 L 600,75 L 500,75 Z',
       labelPos: { x: 550, y: 55 },
       type: 'Emergency Exits',

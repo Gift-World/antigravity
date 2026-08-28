@@ -35,10 +35,10 @@ export const ScannerApp: React.FC = () => {
 
   // Gates: Gate A, Gate B, Gate C, Gate D
   const gates = [
-    { id: 'z1111111-1111-1111-1111-111111111111', name: 'Gate A (North Turnstiles)' },
-    { id: 'z2222222-2222-2222-2222-222222222222', name: 'Gate B (East Main Entrance)' },
-    { id: 'z3333333-3333-3333-3333-333333333333', name: 'Gate C (South General)' },
-    { id: 'z4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP & Media Express)' },
+    { id: 'c1111111-1111-1111-1111-111111111111', name: 'Gate A (North Turnstiles)' },
+    { id: 'c2222222-2222-2222-2222-222222222222', name: 'Gate B (East Main Entrance)' },
+    { id: 'c3333333-3333-3333-3333-333333333333', name: 'Gate C (South General)' },
+    { id: 'c4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP & Media Express)' },
   ];
 
   const [selectedGate, setSelectedGate] = useState(gates[0].id);
