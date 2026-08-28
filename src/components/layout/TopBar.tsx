@@ -14,9 +14,10 @@ import {
   QrCode,
   Smartphone,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
+  const navigate = useNavigate();
   const {
     currentUser,
     users,
@@ -30,6 +31,13 @@ export const TopBar: React.FC = () => {
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const role = e.target.value as UserRole;
     setUserRole(role);
+    if (role === 'super_admin' || role === 'org_admin' || role === 'event_manager') {
+      navigate('/dashboard');
+    } else if (role === 'security' || role === 'medical') {
+      navigate('/field');
+    } else if (role === 'attendee') {
+      navigate('/app');
+    }
   };
 
   const getRoleIcon = (role: UserRole) => {

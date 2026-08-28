@@ -1,12 +1,26 @@
 // src/routes/app/AttendeeLayout.tsx
 import React from 'react';
-import { Outlet, NavLink, Link } from 'react-router-dom';
+import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
 import { useAppStore } from '@/lib/store';
 import { Ticket, Shield, HeartPulse, Smartphone } from 'lucide-react';
+import { UserRole } from '@/types/database';
 
 export const AttendeeLayout: React.FC = () => {
-  const { currentUser } = useAppStore();
+  const navigate = useNavigate();
+  const { currentUser, setUserRole } = useAppStore();
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const role = e.target.value as UserRole;
+    setUserRole(role);
+    if (role === 'super_admin' || role === 'org_admin' || role === 'event_manager') {
+      navigate('/dashboard');
+    } else if (role === 'security' || role === 'medical') {
+      navigate('/field');
+    } else if (role === 'attendee') {
+      navigate('/app');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-ag-black text-ag-text-primary flex justify-center selection:bg-ag-blue/30 font-sans">
@@ -18,14 +32,25 @@ export const AttendeeLayout: React.FC = () => {
             <AntigravityLogo size="sm" />
           </Link>
 
-          <div className="text-right">
-            <div className="text-xs font-bold text-white leading-tight truncate max-w-[150px]">
-              {currentUser.full_name}
+          <div className="flex items-center gap-2">
+            <div className="text-right hidden sm:block">
+              <div className="text-xs font-bold text-white leading-tight truncate max-w-[120px]">
+                {currentUser.full_name || 'Attendee'}
+              </div>
             </div>
-            <div className="text-[10px] text-ag-green font-medium flex items-center justify-end gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-ag-green animate-pulse" />
-              <span>Event Active</span>
-            </div>
+
+            <select
+              value={currentUser.role}
+              onChange={handleRoleChange}
+              aria-label="Switch Perspective"
+              className="bg-ag-black border border-ag-border rounded-lg text-xs text-white px-2 py-1 focus:outline-none focus:border-ag-blue cursor-pointer"
+            >
+              <option value="super_admin">Admin</option>
+              <option value="event_manager">Manager</option>
+              <option value="security">Security</option>
+              <option value="medical">Medical</option>
+              <option value="attendee">Attendee</option>
+            </select>
           </div>
         </header>
 

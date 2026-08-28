@@ -16,8 +16,11 @@ import {
   DoorOpen,
 } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 export const VenueManagement: React.FC = () => {
-  const { venues, addVenue, addVenueZone } = useAppStore();
+  const navigate = useNavigate();
+  const { venues, addVenue, addVenueZone, currentUser } = useAppStore();
   const [selectedVenueId, setSelectedVenueId] = useState<string>(venues[0]?.id || '');
   const [isAddVenueModalOpen, setIsAddVenueModalOpen] = useState(false);
   const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
@@ -32,6 +35,26 @@ export const VenueManagement: React.FC = () => {
   const [newZoneName, setNewZoneName] = useState('');
   const [newZoneType, setNewZoneType] = useState<ZoneType>('floor_section');
   const [newZoneCapacity, setNewZoneCapacity] = useState(2500);
+
+  const isEventManager = currentUser.role === 'event_manager';
+  if (isEventManager) {
+    return (
+      <div className="p-12 text-center space-y-4 font-sans max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-yellow">
+          <Building className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-bold text-white text-lg">Admin Permission Required</h3>
+          <p className="text-xs text-ag-text-secondary">
+            Only Super Admins and Organization Admins can manage stadiums, gates, and venue zones.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/events')}>
+          Back to Events
+        </Button>
+      </div>
+    );
+  }
 
   const selectedVenue = venues.find((v) => v.id === selectedVenueId) || venues[0];
   const zones = selectedVenue?.zones || [];

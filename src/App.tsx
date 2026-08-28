@@ -24,7 +24,9 @@ import { AttendeeTicket } from '@/routes/app/AttendeeTicket';
 import { AttendeeGuardian } from '@/routes/app/AttendeeGuardian';
 import { AttendeeWallet } from '@/routes/app/AttendeeWallet';
 import { AttendeeSafety } from '@/routes/app/AttendeeSafety';
-import { Loader2, Radio, Info } from 'lucide-react';
+import { FieldResponderApp } from '@/routes/field/FieldResponderApp';
+import { RoleRouteGuard } from '@/components/auth/RoleRouteGuard';
+import { Loader2, Info } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { initData, isLoadingInitialData, isSupabaseConnected } = useAppStore();
@@ -44,7 +46,7 @@ export const App: React.FC = () => {
             Loading ANTIGRAVITY
           </div>
           <div className="text-xs text-ag-text-secondary">
-            Preparing your dashboard...
+            Connecting real-time telemetry...
           </div>
         </div>
       </div>
@@ -69,25 +71,44 @@ export const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Live Event Command Center (Fullscreen Hero Cockpit) */}
-        <Route path="/dashboard/events/:id/live" element={<LiveCommandCenter />} />
+        {/* Gate Scanner Mobile Tool */}
+        <Route path="/scanner" element={<ScannerApp />} />
 
-        {/* Organizer Dashboard */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardHome />} />
-          <Route path="events" element={<EventList />} />
-          <Route path="events/create" element={<CreateEvent />} />
-          <Route path="events/:id/overview" element={<EventDetail />} />
-          <Route path="venues" element={<VenueManagement />} />
-          <Route path="tickets" element={<TicketManagement />} />
-          <Route path="incidents" element={<IncidentsPage />} />
-          <Route path="analytics" element={<AnalyticsReports />} />
-          <Route path="team" element={<TeamManagement />} />
-          <Route path="settings" element={<SettingsPage />} />
+        {/* Field Responder Mobile App (Security & Medical Patrols) */}
+        <Route
+          element={
+            <RoleRouteGuard
+              allowedRoles={['security', 'medical', 'super_admin', 'org_admin', 'event_manager']}
+            />
+          }
+        >
+          <Route path="/field" element={<FieldResponderApp />} />
         </Route>
 
-        {/* Gate Scanner Mobile PWA */}
-        <Route path="/scanner" element={<ScannerApp />} />
+        {/* Organizer & Manager Dashboard Routes */}
+        <Route
+          element={
+            <RoleRouteGuard
+              allowedRoles={['super_admin', 'org_admin', 'event_manager']}
+            />
+          }
+        >
+          {/* Live Event Cockpit (Hero Fullscreen) */}
+          <Route path="/dashboard/events/:id/live" element={<LiveCommandCenter />} />
+
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardHome />} />
+            <Route path="events" element={<EventList />} />
+            <Route path="events/create" element={<CreateEvent />} />
+            <Route path="events/:id/overview" element={<EventDetail />} />
+            <Route path="venues" element={<VenueManagement />} />
+            <Route path="tickets" element={<TicketManagement />} />
+            <Route path="incidents" element={<IncidentsPage />} />
+            <Route path="analytics" element={<AnalyticsReports />} />
+            <Route path="team" element={<TeamManagement />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
 
         {/* Attendee Mobile PWA */}
         <Route path="/app" element={<AttendeeLayout />}>

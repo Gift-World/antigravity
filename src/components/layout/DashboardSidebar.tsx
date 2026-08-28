@@ -13,15 +13,21 @@ import {
 } from 'lucide-react';
 
 export const DashboardSidebar: React.FC = () => {
-  const { activeEventId, events } = useAppStore();
+  const { activeEventId, events, currentUser } = useAppStore();
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
+
+  const isEventManager = currentUser.role === 'event_manager';
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, end: true },
     { to: '/dashboard/events', label: 'Events', icon: <Calendar className="w-4 h-4" /> },
-    { to: `/dashboard/events/${activeEvent?.id || 'e1111111-1111-1111-1111-111111111111'}/live`, label: 'Live View', icon: <Activity className="w-4 h-4 text-ag-green" /> },
-    { to: '/dashboard/venues', label: 'Venues', icon: <Building2 className="w-4 h-4" /> },
-    { to: '/dashboard/team', label: 'Team', icon: <Users className="w-4 h-4" /> },
+    { to: `/dashboard/events/${activeEvent?.id || 'live'}/live`, label: 'Live View', icon: <Activity className="w-4 h-4 text-ag-green" /> },
+    ...(!isEventManager
+      ? [
+          { to: '/dashboard/venues', label: 'Venues', icon: <Building2 className="w-4 h-4" /> },
+          { to: '/dashboard/team', label: 'Team', icon: <Users className="w-4 h-4" /> },
+        ]
+      : []),
     { to: '/dashboard/settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 

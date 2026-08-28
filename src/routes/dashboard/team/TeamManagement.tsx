@@ -17,12 +17,35 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 export const TeamManagement: React.FC = () => {
-  const { users } = useAppStore();
+  const navigate = useNavigate();
+  const { users, currentUser } = useAppStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('security');
+
+  const isEventManager = currentUser.role === 'event_manager';
+  if (isEventManager) {
+    return (
+      <div className="p-12 text-center space-y-4 font-sans max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-full bg-ag-surface border border-ag-border flex items-center justify-center mx-auto text-ag-yellow">
+          <Users className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-bold text-white text-lg">Admin Permission Required</h3>
+          <p className="text-xs text-ag-text-secondary">
+            Only Super Admins and Organization Admins can invite and manage team members and staff rosters.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/events')}>
+          Back to Events
+        </Button>
+      </div>
+    );
+  }
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
