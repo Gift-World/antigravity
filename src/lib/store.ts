@@ -25,6 +25,7 @@ import { soundManager } from '@/lib/audio';
 import { createTicketQRPayload, getDeviceFingerprint } from '@/lib/qr';
 import { triggerMpesaSTKPush } from '@/lib/mpesa';
 import { supabaseService } from '@/lib/supabaseService';
+import { supabase } from '@/lib/supabase';
 
 interface AppState {
   // Loading & Connection state
@@ -90,6 +91,7 @@ interface AppState {
   updateEventStatus: (eventId: string, status: Event['status']) => void;
   addVenue: (venueData: Partial<Venue>) => Venue;
   addVenueZone: (venueId: string, zone: Partial<VenueZone>) => VenueZone;
+  addUser: (userData: Omit<User, 'id' | 'created_at'>) => User;
 
   // Ticket & M-Pesa Actions
   purchaseTicket: (params: {
@@ -643,6 +645,37 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return newZone;
+  },
+
+  addUser: (userData) => {
+    const newUser: User = {
+      id: `0${Math.floor(Math.random() * 8999999 + 1000000)}-${Math.floor(Math.random() * 8999 + 1000)}-4000-8000-${Date.now().toString(16).slice(-12)}`,
+      organization_id: userData.organization_id || get().currentOrg.id || 'a1111111-1111-1111-1111-111111111111',
+      full_name: userData.full_name || 'Staff Member',
+      email: userData.email || '',
+      phone: userData.phone || '+254 700 000 000',
+      role: userData.role || 'security',
+      avatar_url: userData.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120',
+      created_at: new Date().toISOString(),
+    };
+
+    if (get().isSupabaseConnected) {
+      supabase.from('users').insert({
+        id: newUser.id,
+        organization_id: newUser.organization_id,
+        full_name: newUser.full_name,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        avatar_url: newUser.avatar_url,
+      }).then();
+    }
+
+    set((state) => ({
+      users: [newUser, ...state.users],
+    }));
+
+    return newUser;
   },
 
   purchaseTicket: async ({ eventId, tier, price, fullName, email, phone, mpesaPhone }) => {

@@ -187,7 +187,15 @@ export const LiveCommandCenter: React.FC = () => {
           <div className="hidden xl:flex items-center gap-3 text-xs bg-ag-surface-hover/60 px-4 py-2 rounded-xl border border-ag-border">
             <DoorOpen className="w-4 h-4 text-ag-blue" />
             <span className="text-ag-text-muted">Gates:</span>
-            {Object.entries(scansPerMinuteByGate).map(([gateId, stats], idx) => {
+            {((Object.keys(scansPerMinuteByGate).length > 0
+              ? Object.entries(scansPerMinuteByGate)
+              : [
+                  ['c1111111-1111-1111-1111-111111111111', { in: 48, out: 4 }],
+                  ['c2222222-2222-2222-2222-222222222222', { in: 62, out: 7 }],
+                  ['c3333333-3333-3333-3333-333333333333', { in: 34, out: 2 }],
+                  ['c4444444-4444-4444-4444-444444444444', { in: 18, out: 1 }],
+                ]
+            ) as [string, { in: number; out: number }][]).map(([gateId, stats], idx) => {
               const gateLabel =
                 gateId === 'c1111111-1111-1111-1111-111111111111'
                   ? 'A'

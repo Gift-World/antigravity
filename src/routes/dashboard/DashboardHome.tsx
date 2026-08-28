@@ -28,11 +28,11 @@ export const DashboardHome: React.FC = () => {
 
   // Revenue & Tickets
   const totalRevenue = events.reduce((sum, ev) => {
-    return sum + ev.ticket_tiers.reduce((tSum, tier) => tSum + tier.price * tier.sold, 0);
+    return sum + (ev.ticket_tiers || []).reduce((tSum, tier) => tSum + tier.price * tier.sold, 0);
   }, 0);
 
   const totalTicketsSold = events.reduce((sum, ev) => {
-    return sum + ev.ticket_tiers.reduce((tSum, tier) => tSum + tier.sold, 0);
+    return sum + (ev.ticket_tiers || []).reduce((tSum, tier) => tSum + tier.sold, 0);
   }, 0);
 
   return (

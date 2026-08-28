@@ -113,7 +113,7 @@ export const EventList: React.FC = () => {
         ) : (
           filteredEvents.map((event) => {
             const isLive = event.status === 'live';
-            const totalRevenue = event.ticket_tiers.reduce(
+            const totalRevenue = (event.ticket_tiers || []).reduce(
               (acc, t) => acc + t.price * t.sold,
               0
             );

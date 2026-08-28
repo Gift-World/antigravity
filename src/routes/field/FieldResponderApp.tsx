@@ -146,8 +146,8 @@ export const FieldResponderApp: React.FC = () => {
       }`;
 
     createIncident({
-      event_id: activeEvent?.id || '',
-      zone_id: incZone || null,
+      event_id: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
+      zone_id: incZone || zones[0]?.id || undefined,
       incident_type: incType,
       severity: incSeverity,
       title: generatedTitle,

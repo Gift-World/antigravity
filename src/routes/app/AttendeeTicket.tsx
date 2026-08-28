@@ -32,7 +32,7 @@ export const AttendeeTicket: React.FC = () => {
             You don't have any tickets yet. Browse events to get your smart event pass.
           </p>
         </div>
-        <Link to="/app/events">
+        <Link to="/app">
           <Button variant="primary" size="md" className="font-bold">
             Browse Events
           </Button>

@@ -77,7 +77,7 @@ export const VenueManagement: React.FC = () => {
 
   const handleCreateZone = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newZoneName.trim()) return;
+    if (!newZoneName.trim() || !selectedVenue) return;
 
     addVenueZone(selectedVenue.id, {
       name: newZoneName,

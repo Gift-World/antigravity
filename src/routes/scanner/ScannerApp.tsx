@@ -118,7 +118,16 @@ export const ScannerApp: React.FC = () => {
   const handleTestScan = (type: 'valid' | 'duplicate' | 'invalid') => {
     setIsSettingsOpen(false);
     if (type === 'valid') {
-      const validTicket = tickets.find((t) => t.status === 'valid') || tickets[0];
+      const validTicket = tickets.find((t) => t.status === 'valid') || tickets[0] || {
+        id: 'f1111111-1111-1111-1111-111111111111',
+        qr_code_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+        device_fingerprint: 'dev_iphone15_ke_92',
+        event_id: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
+        tier: 'VIP Golden Circle',
+        price: 8000,
+        status: 'valid' as const,
+        created_at: new Date().toISOString(),
+      };
       handleScanData(
         JSON.stringify({
           t: validTicket.id,
@@ -129,8 +138,14 @@ export const ScannerApp: React.FC = () => {
       );
     } else if (type === 'duplicate') {
       const scannedTicket = tickets.find((t) => t.status === 'scanned') || {
-        ...tickets[0],
+        id: 'f1111111-1111-1111-1111-111111111111',
+        qr_code_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+        device_fingerprint: 'dev_iphone15_ke_92',
+        event_id: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
+        tier: 'VIP Golden Circle',
+        price: 8000,
         status: 'scanned' as const,
+        created_at: new Date().toISOString(),
       };
       handleScanData(
         JSON.stringify({
@@ -146,7 +161,7 @@ export const ScannerApp: React.FC = () => {
           t: 'fake_ticket_99',
           h: 'invalid_hash',
           d: 'fp_unknown',
-          e: activeEventId,
+          e: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
         })
       );
     }

@@ -23,7 +23,7 @@ import {
 export const IncidentsPage: React.FC = () => {
   const { incidents, users, events, activeEventId, updateIncidentStatus, createIncident } = useAppStore();
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
-  const zones = activeEvent.venue?.zones || [];
+  const zones = activeEvent?.venue?.zones || [];
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,8 +48,8 @@ export const IncidentsPage: React.FC = () => {
     if (!newTitle.trim()) return;
 
     createIncident({
-      event_id: activeEventId,
-      zone_id: newZoneId,
+      event_id: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
+      zone_id: newZoneId || zones[0]?.id,
       incident_type: newType,
       severity: newSeverity,
       title: newTitle,

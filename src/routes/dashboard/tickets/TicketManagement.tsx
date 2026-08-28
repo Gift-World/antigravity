@@ -46,7 +46,25 @@ export const TicketManagement: React.FC = () => {
 
   const handleBulkGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Generated ${bulkCount} Cryptographically Bound Passes for "${bulkCorporateName}".`);
+    const newTickets: Ticket[] = [];
+    for (let i = 0; i < Math.min(bulkCount, 50); i++) {
+      const tId = `t_${Date.now()}_${i}`;
+      const payload = await createTicketQRPayload(tId, 'dev_corp');
+      newTickets.push({
+        id: tId,
+        event_id: activeEvent?.id || 'e1111111-1111-1111-1111-111111111111',
+        attendee_id: '01111111-1111-1111-1111-111111111111',
+        tier: bulkTier,
+        price: bulkTier.includes('VIP') ? 8000 : 3500,
+        currency: 'KES',
+        status: 'valid',
+        qr_code_hash: payload.hash,
+        device_fingerprint: 'dev_corp',
+        mpesa_transaction_id: `CORP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        purchased_at: new Date().toISOString(),
+      });
+    }
+    useAppStore.setState((state) => ({ tickets: [...newTickets, ...state.tickets] }));
     setIsBulkModalOpen(false);
   };
 
