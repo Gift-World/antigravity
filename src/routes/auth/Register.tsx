@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '@/lib/store';
+import { supabaseService } from '@/lib/supabaseService';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
 import { ArrowRight, Building, Mail, Lock, User } from 'lucide-react';
 
 export const Register: React.FC = () => {
@@ -15,43 +17,24 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/dashboard');
-    }, 600);
+    // Call Supabase Auth signUp
+    await supabaseService.signUp(email, password, fullName, orgName);
+
+    setIsLoading(false);
+    navigate('/dashboard');
   };
 
   return (
-    <div className="min-h-screen bg-ag-black flex items-center justify-center p-4 selection:bg-ag-blue/30 selection:text-ag-green">
+    <div className="min-h-screen bg-ag-black flex items-center justify-center p-4 selection:bg-ag-blue/30 selection:text-ag-green font-sans">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-ag-surface border border-ag-blue/50 flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none">
-                <path
-                  d="M50 18 L24 82 L38 82 L44 68 L56 68 L62 82 L76 82 Z"
-                  stroke="#00E676"
-                  strokeWidth="7"
-                  strokeLinejoin="round"
-                />
-                <path d="M50 38 L50 68" stroke="#00E676" strokeWidth="7" strokeLinecap="round" />
-                <path
-                  d="M42 48 L50 38 L58 48"
-                  stroke="#00E676"
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="font-display font-bold text-xl tracking-wider text-white">
-              ANTIGRAVITY
-            </span>
+            <AntigravityLogo size="md" />
           </Link>
           <p className="text-xs text-ag-text-secondary font-mono">
             Register Event Promotion Organization
@@ -104,7 +87,7 @@ export const Register: React.FC = () => {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full text-sm font-bold mt-2"
+              className="w-full text-sm font-bold mt-2 shadow-lg shadow-ag-blue/20"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Create Organization Account

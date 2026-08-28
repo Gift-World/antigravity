@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAppStore } from '@/lib/store';
+import { supabaseService } from '@/lib/supabaseService';
 import { CheckCircle2, Shield, Sparkles, Send } from 'lucide-react';
 
 export interface WaitlistModalProps {
@@ -33,6 +34,15 @@ export const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose })
 
     // Store in global reactive store
     joinWaitlist(entry);
+
+    // Write directly to Supabase
+    supabaseService.insertWaitlist({
+      full_name: fullName,
+      email,
+      company,
+      event_size: eventSize,
+      message: `Average Event Size: ${eventSize}`,
+    });
 
     // Persist in localStorage for demo mode
     try {

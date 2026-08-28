@@ -14,6 +14,7 @@ import { CommsPanel } from '@/components/live/CommsPanel';
 import { CommandTicker } from '@/components/live/CommandTicker';
 import { formatTimeElapsed } from '@/lib/utils';
 import { useSimulationEngine } from '@/lib/simulation';
+import { supabaseService } from '@/lib/supabaseService';
 import {
   Shield,
   Radio,
@@ -50,6 +51,7 @@ export const LiveCommandCenter: React.FC = () => {
     updateEventStatus,
     criticalFlashAlert,
     dismissCriticalFlash,
+    triggerAlert,
   } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'alerts' | 'gates' | 'incidents' | 'comms'>('alerts');
@@ -57,6 +59,20 @@ export const LiveCommandCenter: React.FC = () => {
   const [elapsedTime, setElapsedTime] = useState('03:15:42');
 
   const event = events.find((e) => e.id === (id || activeEventId)) || events[0];
+
+  // Subscribe to Supabase Realtime telemetry channels
+  useEffect(() => {
+    const unsub = supabaseService.subscribeToLiveTelemetry(
+      event.id,
+      (newAlert) => triggerAlert(newAlert),
+      (newIncident) => {},
+      (newReading) => {},
+      (newScan) => {}
+    );
+    return () => {
+      unsub();
+    };
+  }, [event.id, triggerAlert]);
 
   useEffect(() => {
     if (id && id !== activeEventId) {
