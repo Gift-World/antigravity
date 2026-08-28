@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Event, TicketTier } from '@/types/database';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { MpesaModal } from '@/components/attendee/MpesaModal';
 import { Calendar, MapPin, Ticket, ShieldCheck, Sparkles, Check, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,45 +41,43 @@ export const AttendeeEvents: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="space-y-4">
       {/* Hero Welcome Banner */}
-      <div className="bg-gradient-to-br from-[#12121A] to-[#1E1E2D] rounded-[16px] p-5 text-white shadow-xl relative overflow-hidden">
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 bg-[#00E676]/20 text-[#00E676] px-2.5 py-0.5 rounded-full text-xs font-mono font-bold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>PROTECTED BY ANTIGRAVITY</span>
-          </div>
-          <h2 className="font-display font-bold text-xl leading-tight">
-            Discover Live Events with Zero Safety Compromise
-          </h2>
-          <p className="text-xs text-white/70">
-            Real-time crush prevention, unforgeable device-bound tickets, and built-in anti-theft Guardian Mode.
-          </p>
+      <div className="bg-gradient-to-br from-ag-surface via-ag-black to-ag-surface rounded-[16px] p-5 text-white shadow-xl border border-ag-border space-y-2">
+        <div className="inline-flex items-center gap-1.5 bg-ag-green-dim text-ag-green px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border border-ag-green/30">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>PROTECTED BY ANTIGRAVITY</span>
         </div>
+        <h2 className="font-display font-bold text-xl leading-tight">
+          Discover Live Events with Zero Safety Compromise
+        </h2>
+        <p className="text-xs text-ag-text-secondary font-mono">
+          Real-time crush prevention, unforgeable device-bound tickets, and built-in anti-theft Guardian Mode.
+        </p>
       </div>
 
       {/* Events List */}
       <div className="space-y-4">
-        <h3 className="font-display font-bold text-base text-[#12121A]">Featured Live Events</h3>
+        <h3 className="font-display font-bold text-base text-white">Featured Live Events</h3>
 
         {publishedEvents.map((event) => (
-          <div
+          <Card
             key={event.id}
-            className="bg-white rounded-[14px] border border-[#E2E4EB] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            className="p-0 overflow-hidden bg-ag-surface border-ag-border shadow-md"
           >
             {/* Event Cover Photo */}
-            <div className="h-40 relative bg-gray-200">
+            <div className="h-40 relative bg-ag-black">
               <img
                 src={event.cover_image_url}
                 alt={event.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ag-black via-ag-black/40 to-transparent" />
               <div className="absolute bottom-3 left-3 right-3 text-white">
                 {event.status === 'live' && (
-                  <span className="bg-[#FF1744] text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1 inline-block">
+                  <Badge variant="red" size="sm" pulse className="mb-1">
                     LIVE NOW
-                  </span>
+                  </Badge>
                 )}
                 <h4 className="font-display font-bold text-lg leading-tight">{event.title}</h4>
               </div>
@@ -85,31 +85,31 @@ export const AttendeeEvents: React.FC = () => {
 
             {/* Event Details */}
             <div className="p-4 space-y-3">
-              <div className="space-y-1.5 text-xs text-[#55556A] font-medium">
+              <div className="space-y-1.5 text-xs text-ag-text-secondary font-medium font-mono">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#448AFF]" />
+                  <Calendar className="w-4 h-4 text-ag-blue" />
                   <span>{new Date(event.event_date).toLocaleDateString('en-KE', { dateStyle: 'full' })}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#FF1744]" />
+                  <MapPin className="w-4 h-4 text-ag-red" />
                   <span>{event.venue?.name || 'Nyayo Stadium, Nairobi'}</span>
                 </div>
               </div>
 
               {/* Ticket Tiers Selection */}
-              <div className="pt-2 border-t border-[#E2E4EB] space-y-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-[#717182]">
+              <div className="pt-2 border-t border-ag-border space-y-2">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-ag-text-muted">
                   Available Ticket Tiers
                 </span>
                 <div className="space-y-2">
                   {event.ticket_tiers.map((tier) => (
                     <div
                       key={tier.name}
-                      className="p-3 bg-[#F8F9FC] border border-[#E2E4EB] rounded-[10px] flex items-center justify-between hover:border-[#00A859] transition-colors"
+                      className="p-3 bg-ag-black/60 border border-ag-border rounded-[10px] flex items-center justify-between hover:border-ag-green/50 transition-colors"
                     >
                       <div>
-                        <div className="text-xs font-bold text-[#12121A]">{tier.name}</div>
-                        <div className="text-xs font-mono font-bold text-[#00A859]">
+                        <div className="text-xs font-bold text-white">{tier.name}</div>
+                        <div className="text-xs font-mono font-bold text-ag-green">
                           KES {tier.price.toLocaleString()}
                         </div>
                       </div>
@@ -117,7 +117,7 @@ export const AttendeeEvents: React.FC = () => {
                         size="sm"
                         variant="primary"
                         onClick={() => handleStartPurchase(event, tier)}
-                        className="text-xs bg-[#00A859] hover:bg-[#00924d] text-white font-bold"
+                        className="text-xs font-bold"
                       >
                         Buy M-Pesa
                       </Button>
@@ -126,7 +126,7 @@ export const AttendeeEvents: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 

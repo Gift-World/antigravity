@@ -15,6 +15,8 @@ import {
   Smartphone,
   UserCheck,
   CheckCircle2,
+  ShieldAlert,
+  Flame,
 } from 'lucide-react';
 
 export const IncidentsPanel: React.FC = () => {
@@ -58,24 +60,38 @@ export const IncidentsPanel: React.FC = () => {
     return 'neutral';
   };
 
+  const getTypeIcon = (type: IncidentType) => {
+    switch (type) {
+      case 'phone_theft':
+        return <Smartphone className="w-3.5 h-3.5 text-ag-yellow" />;
+      case 'medical':
+        return <HeartPulse className="w-3.5 h-3.5 text-ag-red" />;
+      case 'crush_risk':
+      case 'stampede':
+        return <AlertTriangle className="w-3.5 h-3.5 text-ag-red" />;
+      default:
+        return <Shield className="w-3.5 h-3.5 text-ag-blue" />;
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col p-4 bg-ag-surface rounded-[8px] border border-ag-border text-ag-text-primary">
+    <div className="h-full flex flex-col p-3.5 bg-ag-surface rounded-[8px] border border-ag-border text-ag-text-primary">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-ag-border mb-3">
+      <div className="flex items-center justify-between pb-2.5 border-b border-ag-border mb-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-ag-yellow" />
-          <h4 className="font-display font-bold text-sm text-ag-text-primary">
+          <h4 className="font-display font-bold text-xs uppercase tracking-wider text-ag-text-primary">
             ACTIVE TACTICAL INCIDENTS
           </h4>
         </div>
         <Button
           size="sm"
-          variant="secondary"
+          variant="danger"
           onClick={() => setIsCreateModalOpen(true)}
-          className="text-xs h-7 px-2.5"
+          className="text-xs h-7 px-2.5 font-bold uppercase"
           leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
-          New Incident
+          Report Incident
         </Button>
       </div>
 
@@ -84,7 +100,7 @@ export const IncidentsPanel: React.FC = () => {
         {incidents.length === 0 ? (
           <div className="h-40 flex flex-col items-center justify-center text-ag-text-muted text-xs">
             <CheckCircle2 className="w-8 h-8 text-ag-green mb-2 opacity-60" />
-            <span>No active incidents. Zero crush risk.</span>
+            <span>No active incidents. Stadium grounds nominal.</span>
           </div>
         ) : (
           incidents.map((incident) => {
@@ -94,15 +110,16 @@ export const IncidentsPanel: React.FC = () => {
             return (
               <div
                 key={incident.id}
-                className="p-3 bg-ag-black/40 rounded-[6px] border border-ag-border hover:border-ag-border/80 transition-colors"
+                className="p-3 bg-ag-black/50 rounded-[6px] border border-ag-border hover:border-ag-border/80 transition-colors"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {getTypeIcon(incident.incident_type)}
                     <Badge variant={getSeverityBadgeVariant(incident.severity)} size="sm">
                       {incident.severity}
                     </Badge>
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-ag-text-secondary">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-ag-text-secondary">
                       {incident.incident_type.replace('_', ' ')}
                     </span>
                   </div>
@@ -115,7 +132,7 @@ export const IncidentsPanel: React.FC = () => {
                 {/* Title & Description */}
                 <h5 className="text-xs font-semibold text-ag-text-primary mb-1">{incident.title}</h5>
                 {incident.description && (
-                  <p className="text-[11px] text-ag-text-secondary leading-snug mb-2.5">
+                  <p className="text-[11px] text-ag-text-secondary leading-snug mb-2">
                     {incident.description}
                   </p>
                 )}
@@ -123,7 +140,7 @@ export const IncidentsPanel: React.FC = () => {
                 {/* Footer Controls */}
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-ag-border/50 text-[11px]">
                   {/* Zone & Assignee */}
-                  <div className="flex items-center gap-2 text-ag-text-muted font-mono text-[10px]">
+                  <div className="flex items-center gap-1.5 text-ag-text-muted font-mono text-[10px]">
                     <span>📍 {zone?.name.split('(')[0] || 'Stadium'}</span>
                     <span>•</span>
                     <span className="text-ag-blue">
@@ -135,7 +152,7 @@ export const IncidentsPanel: React.FC = () => {
                   <select
                     value={incident.status}
                     onChange={(e) => updateIncidentStatus(incident.id, e.target.value as IncidentStatus)}
-                    className="bg-ag-surface border border-ag-border text-ag-text-primary text-[11px] rounded px-2 py-0.5 focus:outline-none focus:border-ag-blue"
+                    className="bg-ag-surface border border-ag-border text-ag-text-primary text-[11px] rounded px-2 py-0.5 focus:outline-none focus:border-ag-blue font-mono"
                   >
                     <option value="open">Open</option>
                     <option value="acknowledged">Acknowledged</option>
@@ -153,7 +170,7 @@ export const IncidentsPanel: React.FC = () => {
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Report New Tactical Incident"
+        title="Report Tactical Incident"
         description="Dispatch response units to crowd surge, phone theft, medical or security incidents"
       >
         <form onSubmit={handleCreateIncident} className="space-y-4">
@@ -167,13 +184,13 @@ export const IncidentsPanel: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
                 Category
               </label>
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as IncidentType)}
-                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue"
+                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
               >
                 <option value="crush_risk">Crush Risk / Surge</option>
                 <option value="phone_theft">Phone Theft (Guardian)</option>
@@ -186,13 +203,13 @@ export const IncidentsPanel: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
                 Severity Level
               </label>
               <select
                 value={newSeverity}
                 onChange={(e) => setNewSeverity(e.target.value as IncidentSeverity)}
-                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue"
+                className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
               >
                 <option value="critical">Critical (Immediate Danger)</option>
                 <option value="high">High Priority</option>
@@ -203,13 +220,13 @@ export const IncidentsPanel: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
               Venue Zone
             </label>
             <select
               value={newZoneId}
               onChange={(e) => setNewZoneId(e.target.value)}
-              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue"
+              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue font-mono"
             >
               {zones.map((z) => (
                 <option key={z.id} value={z.id}>
@@ -220,7 +237,7 @@ export const IncidentsPanel: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-ag-text-secondary mb-1.5 font-mono">
               Situation Notes
             </label>
             <textarea
@@ -228,7 +245,7 @@ export const IncidentsPanel: React.FC = () => {
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               placeholder="Describe crowd movement, suspect description, or triage notes..."
-              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue placeholder:text-ag-text-muted"
+              className="w-full bg-ag-black/60 border border-ag-border text-ag-text-primary rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-ag-blue placeholder:text-ag-text-muted font-sans"
             />
           </div>
 

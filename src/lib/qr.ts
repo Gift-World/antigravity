@@ -55,18 +55,31 @@ export async function createTicketQRPayload(ticketId: string, deviceFingerprint?
 export function parseQRPayload(rawText: string): QRPayload | null {
   try {
     const parsed = JSON.parse(rawText);
-    if (parsed && typeof parsed.tid === 'string' && typeof parsed.hash === 'string') {
-      return parsed as QRPayload;
+    const tid = parsed.tid || parsed.ticketId || parsed.t;
+    const hash = parsed.hash || parsed.h || parsed.qr_code_hash;
+    if (tid && hash) {
+      return {
+        tid: String(tid),
+        hash: String(hash),
+        ver: parsed.ver || parsed.v || 1,
+      };
     }
+    return null;
   } catch (e) {
-    // Might be raw ticket ID if scanned directly
-    if (rawText.length >= 10) {
+    // If raw ticket ID was scanned
+    if (typeof rawText === 'string' && rawText.length > 3) {
       return {
         tid: rawText,
         hash: 'direct_scanned_id',
-        ver: 1
+        ver: 1,
       };
     }
+    return null;
   }
-  return null;
+}
+
+export async function verifyTicketHash(ticketId: string, deviceFingerprint: string, expectedHash: string): Promise<boolean> {
+  const rawString = `${ticketId}:${deviceFingerprint}:${SECRET_SALT}`;
+  const computedHash = await generateSHA256Hash(rawString);
+  return computedHash === expectedHash;
 }

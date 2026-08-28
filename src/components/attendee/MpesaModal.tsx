@@ -10,6 +10,7 @@ export interface MpesaModalProps {
   isOpen: boolean;
   onClose: () => void;
   amount: number;
+  phoneNumber?: string;
   title?: string;
   description?: string;
   onSuccess: (phone: string) => Promise<void>;
@@ -19,11 +20,12 @@ export const MpesaModal: React.FC<MpesaModalProps> = ({
   isOpen,
   onClose,
   amount,
+  phoneNumber,
   title = 'Lipa na M-Pesa Online',
   description = 'An STK push PIN prompt will be sent directly to your phone.',
   onSuccess,
 }) => {
-  const [phone, setPhone] = useState('0722998877');
+  const [phone, setPhone] = useState(phoneNumber || '0722998877');
   const [step, setStep] = useState<'input' | 'prompting' | 'processing' | 'success'>('input');
   const [error, setError] = useState('');
 

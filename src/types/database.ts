@@ -81,6 +81,7 @@ export type TargetAudience =
   | 'organizer' 
   | 'security' 
   | 'medical' 
+  | 'attendees'
   | 'attendees_zone' 
   | 'attendees_all' 
   | 'all';

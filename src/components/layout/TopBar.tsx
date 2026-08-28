@@ -1,240 +1,172 @@
 // src/components/layout/TopBar.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppStore } from '@/lib/store';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { UserRole } from '@/types/database';
+import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
 import {
-  Bell,
   Volume2,
   VolumeX,
   Play,
   Pause,
-  Radio,
-  ExternalLink,
-  ChevronDown,
   Shield,
   Stethoscope,
+  Users,
   UserCheck,
+  Radio,
+  ExternalLink,
   Smartphone,
-  Flame,
+  QrCode,
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
-  const navigate = useNavigate();
   const {
     currentUser,
-    currentOrg,
-    events,
-    activeEventId,
+    users,
+    setCurrentUser,
     setUserRole,
     isSimulationActive,
     toggleSimulation,
     isAudioMuted,
     toggleAudioMute,
-    alerts,
+    activeEventId,
   } = useAppStore();
 
-  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const role = e.target.value as UserRole;
+    setUserRole(role);
+  };
 
-  const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
-  const unreadAlerts = alerts.filter((a) => !a.acknowledged_at);
-
-  const roleLabels: Record<UserRole, { label: string; icon: React.ReactNode; color: string }> = {
-    super_admin: { label: 'Super Admin', icon: <Shield className="w-3.5 h-3.5" />, color: 'text-ag-purple' },
-    org_admin: { label: 'Org Admin', icon: <Shield className="w-3.5 h-3.5" />, color: 'text-ag-blue' },
-    event_manager: { label: 'Event Manager', icon: <UserCheck className="w-3.5 h-3.5" />, color: 'text-ag-green' },
-    security: { label: 'Security Lead', icon: <Shield className="w-3.5 h-3.5" />, color: 'text-ag-yellow' },
-    medical: { label: 'Chief Medical', icon: <Stethoscope className="w-3.5 h-3.5" />, color: 'text-ag-red' },
-    vendor: { label: 'Vendor Pos', icon: <Smartphone className="w-3.5 h-3.5" />, color: 'text-ag-orange' },
-    attendee: { label: 'Attendee View', icon: <Smartphone className="w-3.5 h-3.5" />, color: 'text-ag-text-secondary' },
+  const getRoleIcon = (role: UserRole) => {
+    switch (role) {
+      case 'super_admin':
+      case 'org_admin':
+        return <Shield className="w-3.5 h-3.5 text-ag-yellow" />;
+      case 'security':
+        return <Shield className="w-3.5 h-3.5 text-ag-yellow" />;
+      case 'medical':
+        return <Stethoscope className="w-3.5 h-3.5 text-ag-red" />;
+      case 'event_manager':
+        return <UserCheck className="w-3.5 h-3.5 text-ag-green" />;
+      default:
+        return <Users className="w-3.5 h-3.5 text-ag-blue" />;
+    }
   };
 
   return (
-    <header className="h-16 border-b border-ag-border bg-ag-surface/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
-      {/* Left: Organization & Active Event Info */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg overflow-hidden border border-ag-border bg-ag-black/50 shrink-0">
-            <img src={currentOrg.logo_url} alt={currentOrg.name} className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden sm:block">
-            <div className="text-xs font-semibold text-ag-text-primary leading-tight">{currentOrg.name}</div>
-            <div className="text-[10px] text-ag-text-secondary font-mono">Nairobi Ops Center</div>
-          </div>
-        </div>
-
-        <div className="h-4 w-px bg-ag-border hidden md:block" />
-
-        {/* Live Event Tag */}
-        {activeEvent && (
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-xs text-ag-text-muted">Event:</span>
-            <Link
-              to={`/dashboard/events/${activeEvent.id}/overview`}
-              className="text-xs font-medium text-ag-text-primary hover:text-ag-blue flex items-center gap-1.5 transition-colors"
-            >
-              <span className="truncate max-w-[180px]">{activeEvent.title}</span>
-              {activeEvent.status === 'live' && (
-                <Badge variant="red" pulse size="sm">
-                  LIVE
-                </Badge>
-              )}
-            </Link>
-          </div>
-        )}
+    <header className="h-16 bg-ag-surface border-b border-ag-border px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none">
+      {/* Brand / Logo */}
+      <div className="flex items-center gap-4">
+        <Link to="/" className="flex items-center gap-2">
+          <AntigravityLogo size="sm" />
+        </Link>
       </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Live Command Center Launch Button */}
-        {activeEvent?.status === 'live' && (
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={() => navigate(`/dashboard/events/${activeEvent.id}/live`)}
-            className="animate-pulse-slow shadow-ag-red/30 shadow-lg text-xs"
-            leftIcon={<Radio className="w-3.5 h-3.5" />}
-          >
-            <span className="hidden sm:inline">LAUNCH</span> COMMAND CENTER
-          </Button>
-        )}
+      {/* Center Actions / Direct App Links */}
+      <div className="hidden md:flex items-center gap-3">
+        <Link
+          to={`/dashboard/events/${activeEventId}/live`}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-ag-red-dim hover:bg-ag-red/20 border border-ag-red/40 text-xs font-mono text-ag-red font-bold transition-colors"
+        >
+          <Radio className="w-3.5 h-3.5 animate-pulse" />
+          <span>Launch Mission Control</span>
+        </Link>
 
-        {/* Simulation Mode Toggle */}
+        <Link
+          to="/scanner"
+          target="_blank"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border text-xs font-mono text-ag-green transition-colors"
+        >
+          <QrCode className="w-3.5 h-3.5" />
+          <span>Scanner PWA</span>
+        </Link>
+
+        <Link
+          to="/app"
+          target="_blank"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border text-xs font-mono text-ag-blue transition-colors"
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>Attendee App</span>
+        </Link>
+      </div>
+
+      {/* Right Controls: Simulation toggle, Audio, Persona */}
+      <div className="flex items-center gap-3">
+        {/* Simulation Mode Toggle Button */}
         <button
           onClick={toggleSimulation}
-          title={isSimulationActive ? 'Pause Demo Telemetry Simulation' : 'Resume Demo Telemetry Simulation'}
           className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-[6px] border transition-all ${
             isSimulationActive
               ? 'bg-ag-green-dim border-ag-green/40 text-ag-green'
-              : 'bg-ag-surface-hover border-ag-border text-ag-text-muted'
+              : 'bg-ag-black/40 border-ag-border text-ag-text-muted'
           }`}
+          title="Toggle Simulation Generator"
         >
           {isSimulationActive ? (
             <>
               <span className="w-2 h-2 rounded-full bg-ag-green animate-ping" />
               <span className="hidden sm:inline font-semibold">SIMULATION ON</span>
-              <Pause className="w-3 h-3 ml-1" />
+              <Pause className="w-3 h-3 ml-0.5" />
             </>
           ) : (
             <>
               <span className="w-2 h-2 rounded-full bg-ag-text-muted" />
-              <span className="hidden sm:inline">SIMULATION OFF</span>
-              <Play className="w-3 h-3 ml-1" />
+              <span className="hidden sm:inline">SIMULATION PAUSED</span>
+              <Play className="w-3 h-3 ml-0.5" />
             </>
           )}
         </button>
 
-        {/* Audio Mute/Unmute */}
+        {/* Audio Mute Toggle */}
         <button
           onClick={toggleAudioMute}
-          title={isAudioMuted ? 'Unmute alert sirens & chimes' : 'Mute audio'}
-          className="p-2 text-ag-text-secondary hover:text-ag-text-primary bg-ag-black/40 hover:bg-ag-surface-hover border border-ag-border rounded-[6px] transition-colors"
+          className="p-2 text-ag-text-secondary hover:text-white bg-ag-black/50 hover:bg-ag-surface-hover border border-ag-border rounded-[6px] transition-colors"
+          title={isAudioMuted ? 'Unmute Alarms' : 'Mute Alarms'}
         >
           {isAudioMuted ? <VolumeX className="w-4 h-4 text-ag-red" /> : <Volume2 className="w-4 h-4 text-ag-green" />}
         </button>
 
-        {/* Notifications Bell Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setIsAlertsOpen(!isAlertsOpen)}
-            className="p-2 relative text-ag-text-secondary hover:text-ag-text-primary bg-ag-black/40 hover:bg-ag-surface-hover border border-ag-border rounded-[6px] transition-colors"
-          >
-            <Bell className="w-4 h-4" />
-            {unreadAlerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-ag-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                {unreadAlerts.length}
-              </span>
-            )}
-          </button>
+        {/* Role Selector Pill */}
+        <div className="flex items-center gap-2 pl-3 border-l border-ag-border">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-ag-border bg-ag-black shrink-0 hidden sm:block">
+            <img
+              src={currentUser.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+              alt={currentUser.full_name}
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-          {isAlertsOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-ag-surface border border-ag-border rounded-[8px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 border-b border-ag-border mb-2">
-                <span className="font-display text-xs font-bold text-ag-text-primary">LIVE SAFETY ALERTS</span>
-                <span className="text-[10px] font-mono text-ag-text-muted">{unreadAlerts.length} Active</span>
-              </div>
-              <div className="max-h-64 overflow-y-auto space-y-2">
-                {alerts.length === 0 ? (
-                  <p className="text-xs text-ag-text-muted text-center py-4">No active alerts</p>
-                ) : (
-                  alerts.slice(0, 5).map((a) => (
-                    <div
-                      key={a.id}
-                      className={`p-2.5 rounded border text-xs ${
-                        a.severity === 'critical'
-                          ? 'bg-ag-red-dim border-ag-red/40 text-ag-red'
-                          : a.severity === 'warning'
-                          ? 'bg-ag-yellow-dim border-ag-yellow/40 text-ag-yellow'
-                          : 'bg-ag-surface-hover border-ag-border text-ag-text-secondary'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold uppercase tracking-wider text-[10px]">{a.alert_type}</span>
-                        <span className="text-[10px] font-mono opacity-80">
-                          {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <p className="leading-snug text-ag-text-primary text-[11px]">{a.message}</p>
-                    </div>
-                  ))
-                )}
-              </div>
+          <div className="flex flex-col">
+            <div className="text-xs font-bold text-white leading-tight truncate max-w-[130px]">
+              {currentUser.full_name}
             </div>
-          )}
-        </div>
-
-        {/* User Role Switcher Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 bg-ag-black/40 hover:bg-ag-surface-hover border border-ag-border rounded-[6px] transition-colors"
-          >
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-ag-border">
-              <img src={currentUser.avatar_url} alt={currentUser.full_name} className="w-full h-full object-cover" />
+            <div className="flex items-center gap-1 mt-0.5">
+              {getRoleIcon(currentUser.role)}
+              <select
+                value={currentUser.role}
+                onChange={handleRoleChange}
+                aria-label="Select User Role Perspective"
+                className="bg-transparent text-[10px] font-mono uppercase tracking-wider text-ag-text-secondary hover:text-white border-none p-0 focus:outline-none cursor-pointer"
+              >
+                <option value="super_admin" className="bg-ag-surface text-white">
+                  Super Admin
+                </option>
+                <option value="event_manager" className="bg-ag-surface text-white">
+                  Event Manager
+                </option>
+                <option value="security" className="bg-ag-surface text-white">
+                  Security Lead
+                </option>
+                <option value="medical" className="bg-ag-surface text-white">
+                  Medical Lead
+                </option>
+                <option value="attendee" className="bg-ag-surface text-white">
+                  Attendee
+                </option>
+              </select>
             </div>
-            <div className="text-left hidden lg:block">
-              <div className="text-xs font-semibold text-ag-text-primary leading-tight truncate max-w-[100px]">
-                {currentUser.full_name.split(' ')[0]}
-              </div>
-              <div className={`text-[10px] font-mono ${roleLabels[currentUser.role]?.color || 'text-ag-blue'}`}>
-                {roleLabels[currentUser.role]?.label || currentUser.role}
-              </div>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-ag-text-muted" />
-          </button>
-
-          {isRoleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-ag-surface border border-ag-border rounded-[8px] shadow-2xl p-1.5 z-50">
-              <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-ag-text-muted border-b border-ag-border mb-1">
-                Switch Perspective (Demo)
-              </div>
-              {(Object.keys(roleLabels) as UserRole[]).map((role) => {
-                const item = roleLabels[role];
-                const isSelected = currentUser.role === role;
-                return (
-                  <button
-                    key={role}
-                    onClick={() => {
-                      setUserRole(role);
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs text-left transition-colors ${
-                      isSelected ? 'bg-ag-blue-dim text-ag-blue font-semibold' : 'text-ag-text-secondary hover:bg-ag-surface-hover hover:text-ag-text-primary'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className={item.color}>{item.icon}</span>
-                      {item.label}
-                    </span>
-                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-ag-blue" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </header>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MeshCanvas } from '@/components/landing/MeshCanvas';
 import { WaitlistModal } from '@/components/landing/WaitlistModal';
+import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -21,6 +22,11 @@ import {
   CheckCircle2,
   Lock,
   ExternalLink,
+  Wallet,
+  FileSpreadsheet,
+  Building,
+  BarChart3,
+  Flame,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -29,321 +35,388 @@ export const LandingPage: React.FC = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
+  const features = [
+    {
+      title: 'Crowd Shield',
+      category: 'Real-time Density Radar',
+      desc: 'Predicts bottlenecks, tracks spatial crowd pressure per square meter across stadium sectors, and triggers autonomous safety directives before crushes occur.',
+      icon: <Shield className="w-6 h-6 text-ag-green" />,
+      color: 'border-ag-green/30 bg-ag-green-dim/10',
+      badge: 'Autonomous AI',
+      badgeVariant: 'green' as const,
+    },
+    {
+      title: 'Guardian Mode',
+      category: 'Phone Theft Prevention',
+      desc: 'Tethers attendee devices to smart wristbands via BLE mesh. Instant 100dB wailing siren sounds and screen locks if severed in dense concert pits.',
+      icon: <Smartphone className="w-6 h-6 text-ag-yellow" />,
+      color: 'border-ag-yellow/30 bg-ag-yellow-dim/10',
+      badge: 'BLE Mesh Tether',
+      badgeVariant: 'yellow' as const,
+    },
+    {
+      title: 'Smart Tickets',
+      category: 'Cryptographic Passes',
+      desc: 'SHA-256 device-bound QR passes that eliminate counterfeit screenshots. Zero-fraud turnstile validation with sub-second gate scanning.',
+      icon: <Ticket className="w-6 h-6 text-ag-blue" />,
+      color: 'border-ag-blue/30 bg-ag-blue-dim/10',
+      badge: 'Anti-Counterfeit',
+      badgeVariant: 'blue' as const,
+    },
+    {
+      title: 'Cashless Wallet',
+      category: 'M-Pesa Native Payments',
+      desc: 'Instant STK push top-ups directly to digital wristband wallets. Rapid 1-tap cashless purchases at festival bars and food vendors.',
+      icon: <Wallet className="w-6 h-6 text-ag-purple" />,
+      color: 'border-ag-purple/30 bg-ag-purple-dim/10',
+      badge: 'Safaricom Daraja',
+      badgeVariant: 'purple' as const,
+    },
+    {
+      title: 'Command Center',
+      category: 'Real-time Ops Cockpit',
+      desc: 'NASA-style mission control dashboard showing 13-sector heatmaps, turnstile flow velocity, triage dispatches, and emergency broadcast comms.',
+      icon: <Radio className="w-6 h-6 text-ag-red" />,
+      color: 'border-ag-red/30 bg-ag-red-dim/10',
+      badge: 'Mission Control',
+      badgeVariant: 'red' as const,
+    },
+    {
+      title: 'Safety Reports',
+      category: 'Post-Event Compliance',
+      desc: 'Automated density curves over time, gate throughput timeline audits, incident response logs, and 1-click printable safety certification exports.',
+      icon: <FileSpreadsheet className="w-6 h-6 text-ag-blue" />,
+      color: 'border-ag-blue/30 bg-ag-blue-dim/10',
+      badge: 'Audit & PDF',
+      badgeVariant: 'blue' as const,
+    },
+  ];
+
+  const steps = [
+    {
+      num: '01',
+      title: 'Connect Your Venue Topography',
+      desc: 'Import your stadium or festival layout (Nyayo Stadium, KICC, Carnivore, Uhuru Gardens). Configure sector capacities, gates, and safety thresholds.',
+      icon: <Building className="w-5 h-5 text-ag-blue" />,
+    },
+    {
+      num: '02',
+      title: 'Sell Cryptographic Smart Tickets',
+      desc: 'Attendees purchase passes via Safaricom M-Pesa STK Push. Tickets are cryptographically device-bound to hardware fingerprints to stop counterfeit sharing.',
+      icon: <Ticket className="w-5 h-5 text-ag-green" />,
+    },
+    {
+      num: '03',
+      title: 'Go Live with Mission Control',
+      desc: 'Launch real-time crowd heatmaps, monitor gate flow velocity, track BLE theft alarms, and broadcast instant tactical directives to security squads.',
+      icon: <Radio className="w-5 h-5 text-ag-red" />,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-ag-black text-ag-text-primary selection:bg-ag-blue/30 selection:text-ag-green relative overflow-hidden flex flex-col font-sans">
-      {/* Dynamic Background BLE Mesh Network */}
+      {/* Background BLE Mesh Constellation */}
       <MeshCanvas />
 
       {/* Navigation Header */}
-      <header className="h-20 border-b border-ag-border/60 bg-ag-black/70 backdrop-blur-md px-6 sm:px-12 flex items-center justify-between sticky top-0 z-40">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-ag-surface border border-ag-blue/50 flex items-center justify-center shadow-lg group-hover:border-ag-green transition-colors">
-            <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none">
-              <defs>
-                <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#448AFF" />
-                  <stop offset="100%" stopColor="#00E676" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M50 18 L24 82 L38 82 L44 68 L56 68 L62 82 L76 82 Z"
-                stroke="url(#navLogoGrad)"
-                strokeWidth="7"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <path d="M50 38 L50 68" stroke="url(#navLogoGrad)" strokeWidth="7" strokeLinecap="round" />
-              <path
-                d="M42 48 L50 38 L58 48"
-                stroke="url(#navLogoGrad)"
-                strokeWidth="7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div>
-            <span className="font-display font-bold text-lg tracking-wider text-white">
-              ANTIGRAVITY
-            </span>
-            <span className="text-[9px] font-mono text-ag-green tracking-widest block uppercase">
-              CROWD INTELLIGENCE
-            </span>
-          </div>
-        </Link>
-
-        {/* Quick Links */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-mono text-ag-text-secondary">
-          <a href="#mission" className="hover:text-white transition-colors">
-            Mission
-          </a>
-          <a href="#features" className="hover:text-white transition-colors">
-            Platform Pillars
-          </a>
-          <a href="#command-center" className="hover:text-white transition-colors">
-            Command Center
-          </a>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          <Link to="/scanner" target="_blank" className="hidden sm:inline-block">
-            <Button size="sm" variant="outline" className="text-xs font-mono">
-              Gate Scanner
-            </Button>
+      <header className="h-20 border-b border-ag-border/60 bg-ag-black/80 backdrop-blur-md px-6 md:px-16 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group">
+            <AntigravityLogo size="md" />
           </Link>
-          <Link to="/app" target="_blank" className="hidden sm:inline-block">
-            <Button size="sm" variant="outline" className="text-xs font-mono">
-              Attendee App
+
+          {/* Nav Links */}
+          <div className="hidden md:flex items-center gap-8 text-xs font-mono text-ag-text-secondary">
+            <a href="#mission" className="hover:text-white transition-colors">
+              Why We Exist
+            </a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">
+              How It Works
+            </a>
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="#command-center" className="hover:text-white transition-colors">
+              Mission Control
+            </a>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-3">
+            <Link to="/scanner" target="_blank" className="hidden sm:inline-block">
+              <Button size="sm" variant="outline" className="text-xs font-mono text-ag-green border-ag-green/40 hover:bg-ag-green/10">
+                Gate Scanner PWA
+              </Button>
+            </Link>
+            <Link to="/app" target="_blank" className="hidden sm:inline-block">
+              <Button size="sm" variant="outline" className="text-xs font-mono text-ag-blue border-ag-blue/40 hover:bg-ag-blue/10">
+                Attendee PWA
+              </Button>
+            </Link>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => navigate('/dashboard')}
+              className="text-xs font-bold shadow-lg shadow-ag-blue/20"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+            >
+              Organizer Dashboard
             </Button>
-          </Link>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => navigate('/dashboard')}
-            className="text-xs font-bold"
-            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-          >
-            Launch Dashboard
-          </Button>
+          </div>
         </div>
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative z-10 pt-20 pb-24 px-6 sm:px-12 max-w-6xl mx-auto text-center space-y-8">
-        <div className="inline-flex items-center gap-2 bg-ag-red-dim border border-ag-red/40 px-3.5 py-1.5 rounded-full text-xs font-mono text-ag-red animate-pulse">
-          <Radio className="w-3.5 h-3.5" />
-          <span>AFRICA’S FIRST REAL-TIME CROWD LIFE-SAFETY PLATFORM</span>
-        </div>
+      <section className="relative z-10 pt-16 md:pt-24 pb-20 px-6 md:px-16">
+        <div className="max-w-7xl mx-auto text-center space-y-8">
+          <div className="inline-flex items-center gap-2 bg-ag-red-dim border border-ag-red/40 px-4 py-1.5 rounded-full text-xs font-mono text-ag-red animate-pulse shadow-lg shadow-ag-red/10">
+            <Radio className="w-3.5 h-3.5" />
+            <span>AFRICA’S FIRST REAL-TIME CROWD LIFE-SAFETY PLATFORM</span>
+          </div>
 
-        <h1 className="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.08] max-w-4xl mx-auto">
-          Never Lose Another Life to a Preventable Crush.
-        </h1>
+          <div className="space-y-4 max-w-5xl mx-auto">
+            <h1 className="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.08] text-center">
+              Never Lose Another Life to a Preventable Crush.
+            </h1>
 
-        <p className="text-base sm:text-lg text-ag-text-secondary max-w-2xl mx-auto font-sans leading-relaxed">
-          ANTIGRAVITY counteracts the crushing gravity of live event crowds. We predict density surges before stampedes occur, stop phone theft via BLE mesh, and empower promoters with NASA-grade mission control.
-        </p>
+            <p className="text-base sm:text-lg md:text-xl text-ag-text-secondary max-w-3xl mx-auto font-sans leading-relaxed pt-2">
+              ANTIGRAVITY is the force that counteracts the crushing gravity of crowds. We predict density surges before stampedes occur, stop phone theft via BLE mesh, and give African event organizers total operational control.
+            </p>
+          </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Button
-            size="lg"
-            variant="danger"
-            onClick={() => navigate(`/dashboard/events/${activeEvent.id}/live`)}
-            className="w-full sm:w-auto text-sm font-bold shadow-xl shadow-ag-red/30"
-            leftIcon={<Radio className="w-4 h-4" />}
-          >
-            Live Command Center Demo
-          </Button>
+          {/* Hero CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 max-w-md mx-auto sm:max-w-none">
+            <Button
+              size="lg"
+              variant="danger"
+              onClick={() => navigate(`/dashboard/events/${activeEvent.id}/live`)}
+              className="w-full sm:w-auto text-sm font-bold shadow-2xl shadow-ag-red/30 px-8 h-12"
+              leftIcon={<Radio className="w-4 h-4 animate-pulse" />}
+            >
+              Live Command Center Demo
+            </Button>
 
-          <Button
-            size="lg"
-            variant="primary"
-            onClick={() => setIsWaitlistOpen(true)}
-            className="w-full sm:w-auto text-sm font-bold shadow-xl shadow-ag-blue/20"
-          >
-            Request Early Access
-          </Button>
-        </div>
+            <Button
+              size="lg"
+              variant="primary"
+              onClick={() => setIsWaitlistOpen(true)}
+              className="w-full sm:w-auto text-sm font-bold shadow-xl shadow-ag-blue/20 px-8 h-12"
+            >
+              Request Early Access
+            </Button>
+          </div>
 
-        {/* Interactive App Switcher Pill Links */}
-        <div className="pt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
-          <span className="text-ag-text-muted">Direct Demos:</span>
-          <Link
-            to={`/dashboard/events/${activeEvent.id}/live`}
-            className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-white transition-colors"
-          >
-            🚀 Mission Control (Desktop)
-          </Link>
-          <Link
-            to="/scanner"
-            target="_blank"
-            className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-green transition-colors"
-          >
-            📱 Gate Scanner PWA (Mobile)
-          </Link>
-          <Link
-            to="/app"
-            target="_blank"
-            className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-blue transition-colors"
-          >
-            🎟️ Attendee PWA (Mobile)
-          </Link>
+          {/* Quick Demo Mode Links */}
+          <div className="pt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
+            <span className="text-ag-text-muted">Direct Launch:</span>
+            <Link
+              to={`/dashboard/events/${activeEvent.id}/live`}
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-white transition-colors flex items-center gap-1.5"
+            >
+              <Radio className="w-3.5 h-3.5 text-ag-red" />
+              <span>Mission Control (Live Stadium)</span>
+            </Link>
+            <Link
+              to="/scanner"
+              target="_blank"
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-green transition-colors flex items-center gap-1.5"
+            >
+              <QrCode className="w-3.5 h-3.5 text-ag-green" />
+              <span>Gate Scanner PWA</span>
+            </Link>
+            <Link
+              to="/app"
+              target="_blank"
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-blue transition-colors flex items-center gap-1.5"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-ag-blue" />
+              <span>Attendee Smart App</span>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* WHY THIS EXISTS — KAREN LOJORE TRIBUTE & PROBLEM SECTION */}
-      <section id="mission" className="relative z-10 py-20 px-6 sm:px-12 bg-ag-surface/40 border-y border-ag-border">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="max-w-3xl space-y-4">
-            <div className="text-xs font-mono uppercase tracking-widest text-ag-red flex items-center gap-2">
-              <HeartHandshake className="w-4 h-4" />
-              <span>THE REAL-WORLD URGENCY</span>
+      {/* KAREN LOJORE STORY — THE EMOTIONAL ANCHOR */}
+      <section id="mission" className="relative z-10 py-20 px-6 md:px-16 bg-ag-surface/40 border-y border-ag-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            {/* Story narrative */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-ag-red font-bold">
+                <HeartHandshake className="w-4 h-4" />
+                <span>IN MEMORIAM • WHY ANTIGRAVITY EXISTS</span>
+              </div>
+
+              <h2 className="font-display font-bold text-3xl sm:text-4xl text-white leading-tight">
+                December 20, 2025. Nyayo National Stadium.
+              </h2>
+
+              <div className="space-y-4 text-sm sm:text-base text-ag-text-secondary leading-relaxed font-sans">
+                <p>
+                  On December 20, 2025, a 20-year-old Kenyan university student named{' '}
+                  <strong className="text-white font-semibold">Karen Lojore</strong> was crushed to death in a stampede at Nyayo National Stadium in Nairobi during a concert.
+                </p>
+                <p>
+                  There was no crowd monitoring. No density tracking. No automated alerts. No emergency egress directives. And zero accountability.
+                </p>
+                <p className="text-white font-medium bg-ag-black/50 p-4 rounded-[8px] border-l-4 border-ag-red">
+                  "This keeps happening across live events in Africa because stadiums and festival grounds operate with zero safety technology. ANTIGRAVITY was built to make sure another life is never lost to a preventable crush."
+                </p>
+              </div>
             </div>
-            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white leading-tight">
-              18,000 People. Zero Visibility. Zero Second Chances.
+
+            {/* Impact Metric Cards */}
+            <div className="lg:col-span-5 space-y-4">
+              <Card className="p-5 border-ag-red/40 bg-gradient-to-br from-ag-red-dim/20 to-ag-surface space-y-2">
+                <div className="font-display font-bold text-3xl text-ag-red">18,000 People</div>
+                <div className="text-xs font-mono font-bold text-white uppercase">
+                  Zero Visibility Without Telemetry
+                </div>
+                <p className="text-xs text-ag-text-secondary">
+                  When turnstile flow exceeds sector escape thresholds, spatial panic builds in under 90 seconds.
+                </p>
+              </Card>
+
+              <Card className="p-5 border-ag-yellow/40 bg-gradient-to-br from-ag-yellow-dim/20 to-ag-surface space-y-2">
+                <div className="font-display font-bold text-3xl text-ag-yellow">68% Theft Rate</div>
+                <div className="text-xs font-mono font-bold text-white uppercase">
+                  Unprotected Concert Pits
+                </div>
+                <p className="text-xs text-ag-text-secondary">
+                  Snatch-and-grab phone theft syndicates target compressed crowd sectors. Guardian Mode ends this.
+                </p>
+              </Card>
+
+              <Card className="p-5 border-ag-green/40 bg-gradient-to-br from-ag-green-dim/20 to-ag-surface space-y-2">
+                <div className="font-display font-bold text-3xl text-ag-green">0 Deaths Target</div>
+                <div className="text-xs font-mono font-bold text-white uppercase">
+                  Zero-Tolerance Life Safety
+                </div>
+                <p className="text-xs text-ag-text-secondary">
+                  Autonomous spatial threshold alerts command barrier releases before critical density occurs.
+                </p>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS (3 STEPS) */}
+      <section id="how-it-works" className="relative z-10 py-24 px-6 md:px-16">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="text-xs font-mono uppercase tracking-widest text-ag-blue">
+              SIMPLE DEPLOYMENT WORKFLOW
+            </span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
+              How ANTIGRAVITY Works in 3 Steps
             </h2>
-            <p className="text-sm sm:text-base text-ag-text-secondary leading-relaxed">
-              On December 20, 2025, a 20-year-old Kenyan university student named{' '}
-              <strong className="text-white">Karen Lojore</strong> was crushed to death in a stampede at Nyayo National Stadium during a concert. There was no crowd monitoring, no density tracking, no automated alerts, and no accountability.
-            </p>
-            <p className="text-sm sm:text-base text-ag-text-secondary leading-relaxed">
-              This keeps happening across Africa because live venues have zero safety technology. ANTIGRAVITY was engineered to eliminate stampedes forever.
-            </p>
           </div>
 
-          {/* Hard Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
-            <Card className="space-y-2 border-ag-red/30 bg-ag-red-dim/20">
-              <div className="font-display font-bold text-3xl sm:text-4xl text-ag-red">
-                1,200+
-              </div>
-              <div className="text-xs font-mono font-bold text-white uppercase">
-                Global Stampede Fatalities
-              </div>
-              <p className="text-[11px] text-ag-text-secondary">
-                Crush incidents at concerts and stadiums each decade without predictive spatial radar.
-              </p>
-            </Card>
-
-            <Card className="space-y-2 border-ag-yellow/30 bg-ag-yellow-dim/20">
-              <div className="font-display font-bold text-3xl sm:text-4xl text-ag-yellow">
-                68%
-              </div>
-              <div className="text-xs font-mono font-bold text-white uppercase">
-                Concert Phone Thefts
-              </div>
-              <p className="text-[11px] text-ag-text-secondary">
-                Of African concert attendees report phone pickpocketing or snatch-and-grab theft in crowded pits.
-              </p>
-            </Card>
-
-            <Card className="space-y-2 border-ag-blue/30 bg-ag-blue-dim/20">
-              <div className="font-display font-bold text-3xl sm:text-4xl text-ag-blue">
-                0 Platforms
-              </div>
-              <div className="text-xs font-mono font-bold text-white uppercase">
-                Existed for Event Safety
-              </div>
-              <p className="text-[11px] text-ag-text-secondary">
-                Until Antigravity built the world’s first integrated African crowd telemetry operating system.
-              </p>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {steps.map((step, idx) => (
+              <Card key={idx} className="p-6 space-y-4 bg-ag-surface border-ag-border hover:border-ag-blue/50 transition-all">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-2xl text-ag-blue">{step.num}</span>
+                  <div className="w-9 h-9 rounded-lg bg-ag-black border border-ag-border flex items-center justify-center">
+                    {step.icon}
+                  </div>
+                </div>
+                <h3 className="font-display font-bold text-lg text-white">{step.title}</h3>
+                <p className="text-xs text-ag-text-secondary leading-relaxed font-sans">{step.desc}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 3 CORE PILLARS SECTION */}
-      <section id="features" className="relative z-10 py-24 px-6 sm:px-12 max-w-6xl mx-auto space-y-16">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-xs font-mono uppercase tracking-widest text-ag-green">
-            THREE PILLARS OF LIFE-SAFETY
-          </span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
-            SpaceX-Grade Telemetry Built for Live Venues
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Pillar 1: Crowd Shield */}
-          <Card className="space-y-4 p-6 bg-gradient-to-b from-ag-surface to-ag-black border-ag-green/30">
-            <div className="w-12 h-12 rounded-xl bg-ag-green-dim border border-ag-green flex items-center justify-center text-ag-green">
-              <Shield className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-white">1. Crowd Shield Radar</h3>
-            <p className="text-xs text-ag-text-secondary leading-relaxed">
-              Real-time spatial density monitoring per square meter across stadium sectors. Automatically predicts bottlenecks, warns security at 4.5/m², and opens egress gates at 5.5/m² before surges become fatal.
+      {/* ALL 6 CORE FEATURES GRID */}
+      <section id="features" className="relative z-10 py-20 px-6 md:px-16 bg-ag-surface/30 border-t border-ag-border">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="text-xs font-mono uppercase tracking-widest text-ag-green">
+              COMPLETE LIFE-SAFETY INFRASTRUCTURE
+            </span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
+              Engineered for Stadium-Scale Reliability
+            </h2>
+            <p className="text-xs sm:text-sm text-ag-text-secondary font-mono">
+              Six synchronized operational modules providing end-to-end crowd intelligence.
             </p>
-            <ul className="text-[11px] font-mono text-ag-green space-y-1.5 pt-2">
-              <li className="flex items-center gap-2">✓ 13-Sector Heatmap Visualizer</li>
-              <li className="flex items-center gap-2">✓ Predictive Bottleneck AI</li>
-              <li className="flex items-center gap-2">✓ Automated Egress Directives</li>
-            </ul>
-          </Card>
+          </div>
 
-          {/* Pillar 2: Guardian Mode */}
-          <Card className="space-y-4 p-6 bg-gradient-to-b from-ag-surface to-ag-black border-ag-yellow/30">
-            <div className="w-12 h-12 rounded-xl bg-ag-yellow-dim border border-ag-yellow flex items-center justify-center text-ag-yellow">
-              <Smartphone className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-white">2. Guardian Mode Anti-Theft</h3>
-            <p className="text-xs text-ag-text-secondary leading-relaxed">
-              Pairs attendee phones with smart wristbands or secondary devices via BLE mesh. If the tether disconnects, a high-decibel siren sounds, the screen locks with a tamper banner, and GPS coordinates stream to the command center.
-            </p>
-            <ul className="text-[11px] font-mono text-ag-yellow space-y-1.5 pt-2">
-              <li className="flex items-center gap-2">✓ Continuous BLE Signal Tether</li>
-              <li className="flex items-center gap-2">✓ Auto-Locking Distress Screen</li>
-              <li className="flex items-center gap-2">✓ Shake & Triple-Tap SOS Panic</li>
-            </ul>
-          </Card>
-
-          {/* Pillar 3: Smart Tickets & M-Pesa Cashless */}
-          <Card className="space-y-4 p-6 bg-gradient-to-b from-ag-surface to-ag-black border-ag-blue/30">
-            <div className="w-12 h-12 rounded-xl bg-ag-blue-dim border border-ag-blue flex items-center justify-center text-ag-blue">
-              <Ticket className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-white">3. Cryptographic Smart Passes</h3>
-            <p className="text-xs text-ag-text-secondary leading-relaxed">
-              Device-bound SHA-256 encrypted QR passes that eliminate counterfeit screenshots and fraud. Native Safaricom Daraja M-Pesa STK push integration with instant wristband cashless wallets.
-            </p>
-            <ul className="text-[11px] font-mono text-ag-blue space-y-1.5 pt-2">
-              <li className="flex items-center gap-2">✓ Zero-Fraud Hardware Fingerprint</li>
-              <li className="flex items-center gap-2">✓ Lipa na M-Pesa STK Native</li>
-              <li className="flex items-center gap-2">✓ Fast Cashless Vendor Checkout</li>
-            </ul>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, idx) => (
+              <Card key={idx} className={`p-6 space-y-4 border ${f.color} hover:shadow-xl transition-all duration-200`}>
+                <div className="flex items-center justify-between">
+                  <div className="p-2.5 rounded-lg bg-ag-black border border-ag-border">{f.icon}</div>
+                  <Badge variant={f.badgeVariant} size="sm">
+                    {f.badge}
+                  </Badge>
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase text-ag-text-muted">{f.category}</div>
+                  <h3 className="font-display font-bold text-lg text-white mt-0.5">{f.title}</h3>
+                </div>
+                <p className="text-xs text-ag-text-secondary leading-relaxed font-sans">{f.desc}</p>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* COMMAND CENTER PREVIEW SECTION */}
-      <section id="command-center" className="relative z-10 py-20 px-6 sm:px-12 bg-ag-surface/30 border-t border-ag-border">
-        <div className="max-w-6xl mx-auto space-y-8 text-center">
-          <div className="space-y-2">
+      {/* COMMAND CENTER HERO INTERACTIVE PREVIEW */}
+      <section id="command-center" className="relative z-10 py-24 px-6 md:px-16 border-t border-ag-border">
+        <div className="max-w-7xl mx-auto space-y-10 text-center">
+          <div className="space-y-3 max-w-2xl mx-auto">
             <Badge variant="red" pulse size="md">
-              THE MISSION CONTROL HERO SCREEN
+              THE MISSION CONTROL COCKPIT
             </Badge>
             <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
-              Complete Situational Awareness in Real Time
+              Real-time Situational Awareness at 60 FPS
             </h2>
-            <p className="text-xs sm:text-sm text-ag-text-secondary max-w-xl mx-auto font-mono">
-              Live heatmaps, gate flow bar charts, incident tracking, and tactical comms broadcasting.
+            <p className="text-xs sm:text-sm text-ag-text-secondary font-mono">
+              Live spatial heatmaps, turnstile flow velocity curves, incident responder dispatch, and tactical radio broadcasts.
             </p>
           </div>
 
+          {/* Interactive Preview Mockup Box */}
           <div
             onClick={() => navigate(`/dashboard/events/${activeEvent.id}/live`)}
-            className="group relative rounded-[16px] border-2 border-ag-border hover:border-ag-red/60 overflow-hidden shadow-2xl bg-ag-black cursor-pointer transition-all duration-300 transform hover:scale-[1.01]"
+            className="group relative rounded-[16px] border-2 border-ag-border hover:border-ag-red/80 overflow-hidden shadow-2xl bg-ag-black cursor-pointer transition-all duration-300 transform hover:scale-[1.01]"
           >
-            {/* Mockup Preview Graphic */}
-            <div className="aspect-[16/9] bg-gradient-to-br from-[#12121A] to-[#0A0A0F] p-6 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-ag-border pb-3">
+            <div className="p-6 md:p-8 bg-gradient-to-br from-[#12121A] via-[#0A0A0F] to-[#12121A] space-y-6">
+              {/* Cockpit Header */}
+              <div className="flex items-center justify-between border-b border-ag-border pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-ag-red animate-ping" />
-                  <span className="font-display font-bold text-sm text-white uppercase">
-                    AFROBEATS FESTIVAL NAIROBI 2026 • LIVE COMMAND CENTER
+                  <div className="w-3.5 h-3.5 rounded-full bg-ag-red animate-ping" />
+                  <span className="font-display font-bold text-sm text-white uppercase tracking-wider">
+                    {activeEvent.title} • LIVE COMMAND CENTER
                   </span>
                 </div>
-                <div className="font-mono text-xs text-ag-green font-bold">12,847 / 18,000 INGRESS</div>
-              </div>
-
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-ag-red/20 border-2 border-ag-red text-ag-red flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-transform">
-                    <Radio className="w-8 h-8 animate-pulse" />
-                  </div>
-                  <div className="font-display font-bold text-xl text-white">
-                    CLICK TO ENTER LIVE COMMAND CENTER
-                  </div>
-                  <p className="text-xs font-mono text-ag-text-secondary">
-                    Full screen interactive demo with live spatial radar, gate scans, and tactical comms
-                  </p>
+                <div className="font-mono text-xs text-ag-green font-bold bg-ag-green-dim px-2.5 py-1 rounded border border-ag-green/30">
+                  12,847 / 18,000 ATTENDANCE (71.4%)
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] font-mono text-ag-text-muted border-t border-ag-border pt-2">
-                <span>SECTOR 6: MAIN FLOOR NORTH (5.2/m² WARNING)</span>
-                <span>GATE A: 48 SCANS/MIN</span>
-                <span>BLE MESH: 1,420 ACTIVE NODES</span>
+              {/* Center Action Banner */}
+              <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                <div className="w-20 h-20 rounded-2xl bg-ag-red/20 border-2 border-ag-red text-ag-red flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-transform">
+                  <Radio className="w-10 h-10 animate-pulse" />
+                </div>
+                <div className="font-display font-bold text-2xl text-white">
+                  CLICK TO LAUNCH LIVE COMMAND CENTER
+                </div>
+                <p className="text-xs font-mono text-ag-text-secondary max-w-md">
+                  Experience the full-screen NASA-style operations cockpit with real-time crowd density telemetry and audio alarms.
+                </p>
+              </div>
+
+              {/* Footer status line */}
+              <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-ag-text-muted border-t border-ag-border pt-3 gap-2">
+                <span>SECTOR: MAIN FLOOR NORTH (5.2/m² WARNING)</span>
+                <span>GATE FLOW: 142 SCANS/MIN</span>
+                <span>BLE MESH NODES: 1,420 ACTIVE</span>
               </div>
             </div>
           </div>
@@ -351,24 +424,24 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-ag-border bg-ag-black px-6 sm:px-12 py-10 text-xs font-mono text-ag-text-secondary">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-sm text-white">ANTIGRAVITY</span>
-            <span>© 2026 • Nairobi, Kenya</span>
+      <footer className="relative z-10 border-t border-ag-border bg-ag-black px-6 md:px-16 py-12 text-xs font-mono text-ag-text-secondary">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <AntigravityLogo size="sm" />
           </div>
 
-          <div className="flex items-center gap-6">
-            <span>In memory of Karen Lojore</span>
-            <span>•</span>
-            <button onClick={() => setIsWaitlistOpen(true)} className="text-ag-blue hover:underline">
-              Request Deployment
-            </button>
+          <div className="text-center sm:text-right space-y-1">
+            <div className="font-medium text-white">
+              © 2026 ANTIGRAVITY | Nairobi, Kenya | Built to save lives
+            </div>
+            <div className="text-[11px] text-ag-text-muted">
+              In loving memory of Karen Lojore (2005 – 2025)
+            </div>
           </div>
         </div>
       </footer>
 
-      {/* Waitlist Early Access Modal */}
+      {/* Early Access Modal */}
       <WaitlistModal isOpen={isWaitlistOpen} onClose={() => setIsWaitlistOpen(false)} />
     </div>
   );

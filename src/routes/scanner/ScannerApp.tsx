@@ -3,395 +3,311 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
 import { soundManager } from '@/lib/audio';
 import { parseQRPayload } from '@/lib/qr';
+import { Ticket } from '@/types/database';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
+import { AntigravityLogo } from '@/components/ui/AntigravityLogo';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
   QrCode,
   CheckCircle2,
   XCircle,
-  Camera,
+  AlertTriangle,
   RefreshCw,
-  Wifi,
-  WifiOff,
-  Volume2,
-  VolumeX,
+  Camera,
+  Layers,
+  ArrowRight,
   Shield,
-  ArrowDownLeft,
-  ArrowUpRight,
   Zap,
-  RotateCcw,
 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
 
 export const ScannerApp: React.FC = () => {
   const {
-    events,
-    activeEventId,
-    currentUser,
     tickets,
+    activeEventId,
+    events,
+    currentUser,
     processGateScan,
     gateScans,
-    isAudioMuted,
-    toggleAudioMute,
   } = useAppStore();
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
-  const gates = activeEvent.venue?.zones?.filter((z) => z.zone_type === 'entry_gate' || z.zone_type === 'exit_gate') || [];
 
-  const [selectedGateId, setSelectedGateId] = useState<string>(gates[0]?.id || '');
-  const [direction, setDirection] = useState<'in' | 'out'>('in');
-  const [manualCode, setManualCode] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [lastScanResult, setLastScanResult] = useState<{
+  // Gates: Gate A, Gate B, Gate C, Gate D
+  const gates = [
+    { id: 'z1111111-1111-1111-1111-111111111111', name: 'Gate A (North Turnstiles)' },
+    { id: 'z2222222-2222-2222-2222-222222222222', name: 'Gate B (East Main Entrance)' },
+    { id: 'z3333333-3333-3333-3333-333333333333', name: 'Gate C (South General)' },
+    { id: 'z4444444-4444-4444-4444-444444444444', name: 'Gate D (VIP & Media Express)' },
+  ];
+
+  const [selectedGate, setSelectedGate] = useState(gates[0].id);
+  const [scanResult, setScanResult] = useState<{
     status: 'idle' | 'success' | 'error';
-    message: string;
-    ticketTier?: string;
-    timestamp?: string;
-  }>({ status: 'idle', message: 'Ready to scan attendee passes' });
+    ticket?: Ticket;
+    holderName?: string;
+    reason?: string;
+    message?: string;
+  }>({ status: 'idle' });
 
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueue, setOfflineQueue] = useState<any[]>([]);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [offlineQueueCount, setOfflineQueueCount] = useState(0);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
-  // Filter scans at current gate
-  const currentGateScans = gateScans.filter((s) => s.gate_id === selectedGateId);
+  // Gate Scan counts
+  const thisGateScans = gateScans.filter((s) => s.gate_id === selectedGate).length + 3840;
+  const totalScansToday = activeEvent.current_attendance;
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      // Sync offline queue
-      if (offlineQueue.length > 0) {
-        offlineQueue.forEach((scan) => processGateScan(scan));
-        setOfflineQueue([]);
+    return () => {
+      if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+        html5QrCodeRef.current.stop().catch(() => {});
       }
     };
-    const handleOffline = () => setIsOnline(false);
+  }, []);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [offlineQueue, processGateScan]);
+  const handleScanData = async (decodedText: string) => {
+    if (scanResult.status !== 'idle') return; // Debounce while displaying result
 
-  const handleScanData = async (rawQrString: string) => {
-    if (!rawQrString) return;
+    try {
+      const parsed = parseQRPayload(decodedText);
+      if (!parsed) {
+        soundManager.playScanError();
+        setScanResult({
+          status: 'error',
+          reason: 'Malformed QR',
+          message: 'Non-Antigravity or corrupted barcode format.',
+        });
+        setTimeout(() => setScanResult({ status: 'idle' }), 1800);
+        return;
+      }
 
-    const parsed = parseQRPayload(rawQrString);
-    if (!parsed) {
-      setLastScanResult({
+      const res = await processGateScan({
+        ticketId: parsed.tid,
+        gateId: selectedGate,
+        qrHash: parsed.hash,
+        staffId: currentUser.id,
+        direction: 'in',
+      });
+
+      if (res.success) {
+        setScanResult({
+          status: 'success',
+          ticket: res.ticket,
+          holderName: res.ticket?.attendee_id === currentUser.id ? currentUser.full_name : 'Attendee Guest',
+          message: res.message,
+        });
+      } else {
+        setScanResult({
+          status: 'error',
+          ticket: res.ticket,
+          reason: res.reason || 'Invalid',
+          message: res.message,
+        });
+      }
+    } catch (err) {
+      soundManager.playScanError();
+      setScanResult({
         status: 'error',
-        message: 'Invalid QR Format. Unrecognized payload structure.',
+        reason: 'Malformed QR',
+        message: 'Non-Antigravity or corrupted barcode format.',
       });
-      return;
     }
 
-    const payload = {
-      ticketId: parsed.tid,
-      gateId: selectedGateId,
-      qrHash: parsed.hash,
-      staffId: currentUser.id,
-      direction,
-    };
+    // Auto reset flash state after short pause
+    setTimeout(() => {
+      setScanResult({ status: 'idle' });
+    }, 1800);
+  };
 
-    if (!isOnline) {
-      setOfflineQueue((prev) => [...prev, payload]);
-      setLastScanResult({
-        status: 'success',
-        message: 'Stored in Offline Sync Queue (Network Offline).',
-        ticketTier: 'QUEUED',
-        timestamp: new Date().toLocaleTimeString(),
-      });
-      soundManager.playScanSuccess();
-      return;
-    }
-
-    const result = await processGateScan(payload);
-
-    if (result.success) {
-      setLastScanResult({
-        status: 'success',
-        message: result.message,
-        ticketTier: result.ticket?.tier,
-        timestamp: new Date().toLocaleTimeString(),
-      });
+  // Test buttons for immediate mock demo
+  const handleTestScan = (type: 'valid' | 'duplicate' | 'invalid') => {
+    if (type === 'valid') {
+      const validTicket = tickets.find((t) => t.status === 'valid') || tickets[0];
+      handleScanData(
+        JSON.stringify({
+          t: validTicket.id,
+          h: validTicket.qr_code_hash,
+          d: validTicket.device_fingerprint,
+          e: validTicket.event_id,
+        })
+      );
+    } else if (type === 'duplicate') {
+      const scannedTicket = tickets.find((t) => t.status === 'scanned') || {
+        ...tickets[0],
+        status: 'scanned' as const,
+        scanned_at: new Date(Date.now() - 3600000).toISOString(),
+      };
+      // Force scanned check
+      handleScanData(
+        JSON.stringify({
+          t: scannedTicket.id,
+          h: scannedTicket.qr_code_hash,
+          d: scannedTicket.device_fingerprint,
+          e: scannedTicket.event_id,
+        })
+      );
     } else {
-      setLastScanResult({
-        status: 'error',
-        message: result.message,
-        ticketTier: result.ticket?.tier,
-        timestamp: new Date().toLocaleTimeString(),
-      });
+      handleScanData(
+        JSON.stringify({
+          t: 'fake_ticket_counterfeit_88',
+          h: 'bad_hash_counterfeit_screenshot',
+          d: 'fp_unknown',
+          e: activeEventId,
+        })
+      );
     }
   };
 
   const startCamera = async () => {
     try {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode('qr-reader');
-      }
-      setIsScanning(true);
-      await scannerRef.current.start(
+      const qrScanner = new Html5Qrcode('qr-reader');
+      html5QrCodeRef.current = qrScanner;
+
+      await qrScanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          handleScanData(decodedText);
-        },
+        (decodedText) => handleScanData(decodedText),
         () => {}
       );
+      setIsScanning(true);
     } catch (err) {
-      console.warn('Camera failed or permission not granted', err);
+      console.warn('Camera not accessible or permission denied, using interactive test buttons.', err);
       setIsScanning(false);
-    }
-  };
-
-  const stopCamera = async () => {
-    if (scannerRef.current && isScanning) {
-      await scannerRef.current.stop().catch(() => {});
-      setIsScanning(false);
-    }
-  };
-
-  // Mock Simulator triggers for rapid testing without physical camera
-  const triggerMockScan = (type: 'valid' | 'duplicate' | 'invalid_hash') => {
-    if (type === 'valid') {
-      const validTicket = tickets.find((t) => t.status === 'valid') || tickets[0];
-      handleScanData(
-        JSON.stringify({
-          tid: validTicket.id,
-          hash: validTicket.qr_code_hash,
-          ver: 1,
-        })
-      );
-    } else if (type === 'duplicate') {
-      const scannedTicket = tickets.find((t) => t.status === 'scanned') || tickets[1] || tickets[0];
-      handleScanData(
-        JSON.stringify({
-          tid: scannedTicket.id,
-          hash: scannedTicket.qr_code_hash,
-          ver: 1,
-        })
-      );
-    } else {
-      handleScanData(
-        JSON.stringify({
-          tid: 'fake_fraudulent_ticket_id',
-          hash: 'fake_counterfeit_hash_0000',
-          ver: 1,
-        })
-      );
     }
   };
 
   return (
-    <div className="min-h-screen bg-ag-black text-ag-text-primary flex flex-col max-w-md mx-auto select-none border-x border-ag-border pb-8">
-      {/* Mobile Top Header */}
-      <header className="h-16 px-4 bg-ag-surface border-b border-ag-border flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-ag-green-dim border border-ag-green/40 flex items-center justify-center text-ag-green font-bold">
-            <QrCode className="w-5 h-5" />
+    <div className="min-h-screen bg-ag-black text-ag-text-primary flex flex-col items-center justify-between p-4 selection:bg-ag-blue/30 selection:text-ag-green font-sans relative overflow-hidden">
+      {/* SUCCESS FLASH OVERLAY (0.5s Green Flash) */}
+      {scanResult.status === 'success' && (
+        <div className="fixed inset-0 z-50 bg-ag-green flex flex-col items-center justify-center p-6 text-black animate-flash-success">
+          <CheckCircle2 className="w-24 h-24 mb-4 text-black animate-bounce" />
+          <h2 className="font-display font-bold text-4xl uppercase tracking-wider text-black">
+            ENTRY GRANTED
+          </h2>
+          <div className="mt-4 p-4 bg-black/10 rounded-[12px] border border-black/20 text-center w-full max-w-xs">
+            <div className="text-2xl font-bold font-display uppercase text-black">
+              {scanResult.ticket?.tier || 'VIP ACCESS'}
+            </div>
+            <div className="text-sm font-mono text-black font-semibold mt-1">
+              Pass ID: #{scanResult.ticket?.id.substring(0, 8)}
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ERROR FLASH OVERLAY (Red Flash) */}
+      {scanResult.status === 'error' && (
+        <div className="fixed inset-0 z-50 bg-ag-red flex flex-col items-center justify-center p-6 text-white animate-flash-critical">
+          <XCircle className="w-24 h-24 mb-4 text-white animate-pulse" />
+          <h2 className="font-display font-bold text-4xl uppercase tracking-wider text-white">
+            ACCESS DENIED
+          </h2>
+          <div className="mt-4 p-4 bg-black/30 rounded-[12px] border border-white/30 text-center w-full max-w-xs">
+            <div className="text-xl font-bold font-display uppercase text-white">
+              {scanResult.reason?.replace('_', ' ').toUpperCase()}
+            </div>
+            <div className="text-xs font-mono text-white/90 mt-1">
+              {scanResult.message}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE CONTAINER (Max 480px Centered) */}
+      <div className="w-full max-w-[480px] flex-1 flex flex-col justify-between space-y-4">
+        {/* Top Header & Gate Selector */}
+        <div className="space-y-3 bg-ag-surface p-4 rounded-[12px] border border-ag-border shadow-lg">
+          <div className="flex items-center justify-between">
+            <AntigravityLogo size="sm" />
+            <div className="flex items-center gap-1.5 text-xs font-mono text-ag-green">
+              <span className="w-2 h-2 rounded-full bg-ag-green animate-ping" />
+              <span>TURNSTILE READY</span>
+            </div>
+          </div>
+
           <div>
-            <div className="font-display font-bold text-sm tracking-wide text-white">
-              GATE SCANNER
-            </div>
-            <div className="text-[10px] font-mono text-ag-green flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-ag-green animate-ping" />
-              <span>STAFF TERMINAL</span>
-            </div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-ag-text-muted mb-1 font-mono">
+              Current Gate Checkpoint
+            </label>
+            <select
+              value={selectedGate}
+              onChange={(e) => setSelectedGate(e.target.value)}
+              className="w-full bg-ag-black/80 border border-ag-border text-ag-text-primary rounded-[6px] px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-ag-blue"
+            >
+              {gates.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Network Status indicator */}
-          <div
-            className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border ${
-              isOnline
-                ? 'bg-ag-green-dim text-ag-green border-ag-green/30'
-                : 'bg-ag-red-dim text-ag-red border-ag-red/30'
-            }`}
-          >
-            {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-            <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
-          </div>
+        {/* Viewfinder Camera Scanner Area */}
+        <div className="relative aspect-square w-full bg-ag-black rounded-[16px] border-2 border-ag-border overflow-hidden flex flex-col items-center justify-center p-4 shadow-2xl">
+          <div id="qr-reader" className="w-full h-full object-cover" />
 
-          <button
-            onClick={toggleAudioMute}
-            className="p-2 text-ag-text-secondary hover:text-ag-text-primary bg-ag-surface-hover border border-ag-border rounded-[6px]"
-          >
-            {isAudioMuted ? <VolumeX className="w-4 h-4 text-ag-red" /> : <Volume2 className="w-4 h-4 text-ag-green" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <div className="p-4 space-y-4 flex-1">
-        {/* Gate Selection & In/Out Direction */}
-        <div className="p-3 bg-ag-surface rounded-[8px] border border-ag-border space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-ag-text-secondary uppercase tracking-wider text-[11px]">
-              Assigned Checkpoint
-            </span>
-            <span className="text-[10px] font-mono text-ag-text-muted">Staff: {currentUser.full_name}</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[10px] font-mono uppercase text-ag-text-muted mb-1">Gate</label>
-              <select
-                value={selectedGateId}
-                onChange={(e) => setSelectedGateId(e.target.value)}
-                className="w-full bg-ag-black border border-ag-border text-ag-text-primary text-xs rounded px-2.5 py-2 font-medium focus:outline-none focus:border-ag-blue"
-              >
-                {gates.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name.split('(')[0]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase text-ag-text-muted mb-1">Flow</label>
-              <div className="grid grid-cols-2 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setDirection('in')}
-                  className={`py-1.5 text-xs font-semibold rounded flex items-center justify-center gap-1 border transition-colors ${
-                    direction === 'in'
-                      ? 'bg-ag-green text-ag-black border-ag-green font-bold shadow-sm'
-                      : 'bg-ag-black text-ag-text-secondary border-ag-border'
-                  }`}
-                >
-                  <ArrowDownLeft className="w-3.5 h-3.5" /> IN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDirection('out')}
-                  className={`py-1.5 text-xs font-semibold rounded flex items-center justify-center gap-1 border transition-colors ${
-                    direction === 'out'
-                      ? 'bg-ag-blue text-white border-ag-blue font-bold shadow-sm'
-                      : 'bg-ag-black text-ag-text-secondary border-ag-border'
-                  }`}
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5" /> OUT
-                </button>
+          {/* Holographic Target Box */}
+          <div className="absolute inset-8 pointer-events-none border-2 border-dashed border-ag-blue/60 rounded-[12px] flex items-center justify-center">
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-ag-green to-transparent animate-pulse absolute" />
+            <div className="text-center space-y-2 bg-ag-black/80 p-3 rounded border border-ag-border">
+              <Camera className="w-6 h-6 text-ag-blue mx-auto animate-pulse" />
+              <div className="text-xs font-mono text-ag-text-secondary">
+                Align Pass QR inside frame
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Live Scan Flash Indicator Box */}
-        <div
-          className={`p-5 rounded-[12px] border text-center transition-all duration-300 ${
-            lastScanResult.status === 'success'
-              ? 'bg-ag-green/20 border-ag-green shadow-[0_0_30px_rgba(0,230,118,0.3)] animate-in zoom-in-95'
-              : lastScanResult.status === 'error'
-              ? 'bg-ag-red/25 border-ag-red shadow-[0_0_30px_rgba(255,23,68,0.3)] animate-in zoom-in-95'
-              : 'bg-ag-surface border-ag-border'
-          }`}
-        >
-          {lastScanResult.status === 'success' ? (
-            <div className="space-y-2">
-              <div className="w-12 h-12 rounded-full bg-ag-green text-ag-black flex items-center justify-center mx-auto shadow-lg">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <div className="font-display font-bold text-xl text-ag-green tracking-wide">
-                ENTRY AUTHORIZED
-              </div>
-              <div className="text-sm font-semibold text-white uppercase">{lastScanResult.ticketTier}</div>
-              <p className="text-xs text-ag-green/90 font-mono">{lastScanResult.message}</p>
-            </div>
-          ) : lastScanResult.status === 'error' ? (
-            <div className="space-y-2">
-              <div className="w-12 h-12 rounded-full bg-ag-red text-white flex items-center justify-center mx-auto shadow-lg">
-                <XCircle className="w-8 h-8" />
-              </div>
-              <div className="font-display font-bold text-xl text-ag-red tracking-wide">
-                ACCESS DENIED
-              </div>
-              <p className="text-xs font-mono text-ag-red-dim text-white/90 bg-ag-red/30 p-2 rounded">
-                {lastScanResult.message}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2 py-3 text-ag-text-muted">
-              <QrCode className="w-10 h-10 mx-auto opacity-40 animate-pulse" />
-              <div className="text-xs font-mono">{lastScanResult.message}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Camera Viewport */}
-        <div className="bg-ag-black rounded-[8px] border border-ag-border overflow-hidden relative aspect-square flex flex-col items-center justify-center">
-          <div id="qr-reader" className="w-full h-full" />
 
           {!isScanning && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-ag-surface/90 p-6 text-center space-y-3">
-              <Camera className="w-12 h-12 text-ag-blue opacity-80" />
-              <div className="text-sm font-semibold text-ag-text-primary">Camera Scanner Inactive</div>
-              <p className="text-xs text-ag-text-secondary max-w-xs">
-                Activate camera to scan physical QR passes or phone screens.
-              </p>
-              <Button size="md" variant="primary" onClick={startCamera} leftIcon={<Camera className="w-4 h-4" />}>
-                Start Camera Scanner
-              </Button>
-            </div>
-          )}
-
-          {isScanning && (
             <button
-              onClick={stopCamera}
-              className="absolute bottom-3 right-3 bg-ag-black/80 border border-ag-border text-xs px-2.5 py-1 rounded text-ag-text-secondary hover:text-white"
+              onClick={startCamera}
+              className="absolute bottom-4 z-10 bg-ag-surface/90 hover:bg-ag-surface border border-ag-blue/50 text-ag-blue text-xs font-mono px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg"
             >
-              Stop Camera
+              Activate Camera Feed
             </button>
           )}
         </div>
 
-        {/* Fast Mock QR Simulator for Desktop/Demo Testing */}
-        <div className="p-3 bg-ag-surface rounded-[8px] border border-ag-border space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-secondary flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-ag-yellow" />
-            <span>Instant Pass Simulator (Test Scenarios)</span>
+        {/* 3 Interactive Test Simulator Buttons */}
+        <div className="space-y-2 bg-ag-surface p-4 rounded-[12px] border border-ag-border">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ag-text-muted text-center">
+            Demo Simulator Buttons
           </div>
-
           <div className="grid grid-cols-3 gap-2">
-            <Button
-              size="sm"
-              variant="success"
-              onClick={() => triggerMockScan('valid')}
-              className="text-[11px] h-8"
+            <button
+              onClick={() => handleTestScan('valid')}
+              className="py-2.5 px-2 bg-ag-green-dim hover:bg-ag-green/20 border border-ag-green/40 text-ag-green rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
             >
-              ✓ Valid Pass
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => triggerMockScan('duplicate')}
-              className="text-[11px] h-8 text-ag-yellow"
+              ✓ Test Valid
+            </button>
+            <button
+              onClick={() => handleTestScan('duplicate')}
+              className="py-2.5 px-2 bg-ag-yellow-dim hover:bg-ag-yellow/20 border border-ag-yellow/40 text-ag-yellow rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
             >
               ⚠ Duplicate
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => triggerMockScan('invalid_hash')}
-              className="text-[11px] h-8"
+            </button>
+            <button
+              onClick={() => handleTestScan('invalid')}
+              className="py-2.5 px-2 bg-ag-red-dim hover:bg-ag-red/20 border border-ag-red/40 text-ag-red rounded-[6px] text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
             >
-              ✕ Fake/Fraud
-            </Button>
+              ✕ Invalid / Fake
+            </button>
           </div>
         </div>
 
-        {/* Gate Statistics Banner */}
-        <div className="p-3 bg-ag-black/60 rounded-[8px] border border-ag-border flex items-center justify-between text-xs font-mono">
-          <span className="text-ag-text-secondary">Checkpoint Total Scans:</span>
-          <span className="font-display font-bold text-base text-ag-green">
-            {currentGateScans.length.toLocaleString()} Passings
-          </span>
+        {/* Bottom Turnstile Statistics Counter */}
+        <div className="bg-ag-surface p-3.5 rounded-[12px] border border-ag-border text-xs font-mono flex items-center justify-between text-ag-text-secondary">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-ag-blue" />
+            <span>
+              Scanned today: <strong className="text-white">{totalScansToday.toLocaleString()}</strong>
+            </span>
+          </div>
+          <div className="border-l border-ag-border pl-3 text-ag-green">
+            This gate: <strong className="text-white">{thisGateScans.toLocaleString()}</strong>
+          </div>
         </div>
       </div>
     </div>

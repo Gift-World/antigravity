@@ -53,7 +53,7 @@ interface AppState {
   incidents: Incident[];
   alerts: Alert[];
   gateScans: GateScan[];
-  wallets: Record<string, CashlessWallet>; // userId -> wallet
+  wallets: Record<string, CashlessWallet>;
   transactions: Transaction[];
   guardianDevice: GuardianDevice | null;
   waitlist: WaitlistEntry[];
@@ -65,6 +65,7 @@ interface AppState {
   selectedZoneId: string | null;
   criticalFlashAlert: Alert | null;
   scansPerMinuteByGate: Record<string, { in: number; out: number }>;
+  simulationTicks: number;
 
   // Actions
   setActiveEventId: (eventId: string) => void;
@@ -125,7 +126,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  currentUser: INITIAL_USERS[0], // Super Admin Brian Ochieng
+  currentUser: INITIAL_USERS[0],
   currentOrg: INITIAL_ORG,
   users: INITIAL_USERS,
   setCurrentUser: (user) => set({ currentUser: user }),
@@ -168,6 +169,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isAudioMuted: false,
   selectedZoneId: null,
   criticalFlashAlert: null,
+  simulationTicks: 0,
   scansPerMinuteByGate: {
     'z1111111-1111-1111-1111-111111111111': { in: 48, out: 4 }, // Gate A
     'z2222222-2222-2222-2222-222222222222': { in: 62, out: 7 }, // Gate B
@@ -186,7 +188,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dismissCriticalFlash: () => set({ criticalFlashAlert: null }),
 
   processGateScan: async ({ ticketId, gateId, qrHash, staffId, direction }) => {
-    const { tickets, events, activeEventId } = get();
+    const { tickets, activeEventId } = get();
     const ticket = tickets.find((t) => t.id === ticketId);
 
     if (!ticket) {
@@ -268,6 +270,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (newAlert.severity === 'critical') {
       soundManager.playCriticalAlert();
       set({ criticalFlashAlert: newAlert });
+      // Auto-dismiss red flash overlay after 2.5 seconds
+      setTimeout(() => {
+        if (get().criticalFlashAlert?.id === newAlert.id) {
+          set({ criticalFlashAlert: null });
+        }
+      }, 2500);
     } else if (newAlert.severity === 'warning') {
       soundManager.playWarningAlert();
     }
@@ -333,7 +341,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       doors_open: eventData.doors_open || new Date().toISOString(),
       event_start: eventData.event_start || new Date().toISOString(),
       event_end: eventData.event_end,
-      max_capacity: eventData.max_capacity || 5000,
+      max_capacity: eventData.max_capacity || 18000,
       current_attendance: 0,
       status: eventData.status || 'draft',
       cover_image_url:
@@ -400,7 +408,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   purchaseTicket: async ({ eventId, tier, price, fullName, email, phone, mpesaPhone }) => {
-    // Trigger Safaricom Daraja STK Push flow with 3-second simulation
     const mpesaResult = await triggerMpesaSTKPush({
       phoneNumber: mpesaPhone || phone,
       amount: price,
@@ -555,7 +562,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   triggerGuardianSOS: (reason) => {
     soundManager.startGuardianSiren();
     const activeEventId = get().activeEventId;
-    const alertMsg = `GUARDIAN EMERGENCY SOS: Attendee device triggered distress alarm at Main Floor. Tether lost: ${reason || 'Distance anomaly'}`;
+    const alertMsg = `GUARDIAN EMERGENCY SOS: Attendee device distress alarm triggered. Tether severed: ${reason || 'Physical detachment'}`;
 
     get().triggerAlert({
       event_id: activeEventId,
@@ -596,44 +603,89 @@ export const useAppStore = create<AppState>((set, get) => ({
   runSimulationTick: () => {
     if (!get().isSimulationActive) return;
 
-    const { events, activeEventId, densityReadings } = get();
+    const { events, activeEventId, densityReadings, simulationTicks } = get();
     const liveEvent = events.find((e) => e.id === activeEventId);
     if (!liveEvent || liveEvent.status !== 'live') return;
 
-    // 1. Simulate 2-6 random gate scans
-    const gates = ['z1111111-1111-1111-1111-111111111111', 'z2222222-2222-2222-2222-222222222222', 'z3333333-3333-3333-3333-333333333333', 'z4444444-4444-4444-4444-444444444444'];
-    const randomGate = gates[Math.floor(Math.random() * gates.length)];
-    const scanDelta = Math.floor(Math.random() * 5) + 1;
+    const nextTick = simulationTicks + 1;
+    // 2.5s per tick: 48 ticks = 120 seconds (2 minutes cycle)
+    const cyclePos = nextTick % 48;
 
-    // 2. Slightly fluctuate density readings to create a live breathing map
+    // Simulate 2-5 scans at turnstiles every tick
+    const gates = [
+      'z1111111-1111-1111-1111-111111111111',
+      'z2222222-2222-2222-2222-222222222222',
+      'z3333333-3333-3333-3333-333333333333',
+      'z4444444-4444-4444-4444-444444444444',
+    ];
+    const randomGate = gates[Math.floor(Math.random() * gates.length)];
+    const scanDelta = Math.floor(Math.random() * 4) + 2;
+
+    // Main Floor North density escalation curve:
+    // 0 -> 16 ticks (0-40s): 2.4 to 3.4 (Safe to Elevated)
+    // 16 -> 32 ticks (40-80s): 3.5 to 4.8 (Elevated to Warning) -> trigger warning
+    // 32 -> 44 ticks (80-110s): 4.9 to 5.7 (Warning to Critical) -> trigger critical flash
+    // 44 -> 48 ticks (110-120s): Egress open relief (drops back to 3.8)
+    let targetNorthDensity = 2.4 + (cyclePos / 40) * 3.3;
+    if (cyclePos >= 44) {
+      targetNorthDensity = 3.6; // Egress gate relieved crowd
+    }
+
     const updatedReadings = densityReadings.map((r) => {
       const isMainFloorNorth = r.zone_id === 'z6666666-6666-6666-6666-666666666666';
-      // Main Floor North gradually trends higher to demonstrate safety thresholds
-      const drift = isMainFloorNorth ? (Math.random() > 0.35 ? 0.08 : -0.03) : (Math.random() - 0.49) * 0.08;
-      const newDensity = Math.max(0.8, Math.min(6.2, Number((r.density_per_sqm + drift).toFixed(2))));
-      
-      let riskLevel: ZoneDensityReading['risk_level'] = 'safe';
-      if (newDensity >= 5.5) riskLevel = 'critical';
-      else if (newDensity >= 4.5) riskLevel = 'warning';
-      else if (newDensity >= 3.0) riskLevel = 'elevated';
+      if (isMainFloorNorth) {
+        const d = Number(targetNorthDensity.toFixed(2));
+        let risk: ZoneDensityReading['risk_level'] = 'safe';
+        if (d >= 5.5) risk = 'critical';
+        else if (d >= 4.5) risk = 'warning';
+        else if (d >= 3.0) risk = 'elevated';
+
+        return {
+          ...r,
+          density_per_sqm: d,
+          risk_level: risk,
+          estimated_count: Math.round(d * 600),
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      // Other zones fluctuate naturally
+      const drift = (Math.random() - 0.5) * 0.06;
+      const newDensity = Math.max(1.0, Math.min(4.2, Number((r.density_per_sqm + drift).toFixed(2))));
+      let risk: ZoneDensityReading['risk_level'] = 'safe';
+      if (newDensity >= 4.5) risk = 'warning';
+      else if (newDensity >= 3.0) risk = 'elevated';
 
       return {
         ...r,
         density_per_sqm: newDensity,
-        risk_level: riskLevel,
-        estimated_count: Math.round(r.estimated_count + (drift * 200)),
+        risk_level: risk,
+        estimated_count: Math.round(r.estimated_count + drift * 100),
         timestamp: new Date().toISOString(),
       };
     });
 
-    // Check if Main Floor North just reached critical during simulation
-    const mainNorth = updatedReadings.find((r) => r.zone_id === 'z6666666-6666-6666-6666-666666666666');
-    if (mainNorth && mainNorth.density_per_sqm >= 5.5 && Math.random() < 0.15) {
+    // Escalation trigger points
+    if (cyclePos === 24) {
+      // Reached Warning (4.5/m²)
       get().triggerAlert({
         event_id: activeEventId,
+        zone_id: 'z6666666-6666-6666-6666-666666666666',
+        alert_type: 'density_warning',
+        message: 'DENSITY WARNING: Main Floor North reached 4.6 people/m². Prepare holding lanes.',
+        severity: 'warning',
+        target_audience: 'security',
+        auto_generated: true,
+        acknowledged_by: null,
+        acknowledged_at: null,
+      });
+    } else if (cyclePos === 38) {
+      // Reached Critical Surge (5.6/m²) -> 2.5s Full Screen Red Flash + Siren
+      get().triggerAlert({
+        event_id: activeEventId,
+        zone_id: 'z6666666-6666-6666-6666-666666666666',
         alert_type: 'density_critical',
-        zone_id: mainNorth.zone_id,
-        message: `CRITICAL DENSITY SURGE: Main Floor North at ${mainNorth.density_per_sqm} people/m²! Open Emergency Exit 1 immediately.`,
+        message: 'CRITICAL CRUSH RISK: Main Floor North at 5.6 people/m²! Open Emergency Exit 1 & 2 immediately.',
         severity: 'critical',
         target_audience: 'all',
         auto_generated: true,
@@ -643,6 +695,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     set((state) => ({
+      simulationTicks: nextTick,
       events: state.events.map((e) =>
         e.id === activeEventId
           ? { ...e, current_attendance: Math.min(e.max_capacity, e.current_attendance + scanDelta) }
@@ -652,7 +705,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       scansPerMinuteByGate: {
         ...state.scansPerMinuteByGate,
         [randomGate]: {
-          in: Math.floor(Math.random() * 40) + 30,
+          in: Math.floor(Math.random() * 30) + 35,
           out: Math.floor(Math.random() * 8) + 1,
         },
       },

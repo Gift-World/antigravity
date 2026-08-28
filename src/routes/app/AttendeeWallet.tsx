@@ -1,7 +1,9 @@
 // src/routes/app/AttendeeWallet.tsx
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { MpesaModal } from '@/components/attendee/MpesaModal';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -9,179 +11,165 @@ import {
   Plus,
   ArrowUpRight,
   ArrowDownLeft,
-  Coffee,
+  Smartphone,
   Beer,
-  Utensils,
+  Coffee,
+  CheckCircle2,
   Clock,
-  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export const AttendeeWallet: React.FC = () => {
-  const { wallets, currentUser, transactions, topupWallet, spendCashless } = useAppStore();
-
+  const { currentUser, wallets, transactions, spendCashless, topupWallet } = useAppStore();
   const wallet = wallets[currentUser.id] || {
-    id: 'w_demo',
-    user_id: currentUser.id,
-    event_id: 'e1',
-    balance: 4250,
+    id: 'w1',
+    balance: 2500,
     currency: 'KES',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    mpesa_phone: '+254712345678',
   };
 
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
-  const [topupAmount, setTopupAmount] = useState(2000);
-  const [isSpending, setIsSpending] = useState(false);
+  const [topupAmount, setTopupAmount] = useState(1000);
+  const [phone, setPhone] = useState(wallet.mpesa_phone || '+254 712 345 678');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const userTransactions = transactions.filter((t) => t.wallet_id === wallet.id || true);
+  const userTransactions = transactions.filter((t) => t.wallet_id === wallet.id || true).slice(0, 10);
 
-  const handleTopupSuccess = async (mpesaPhone: string) => {
-    await topupWallet(topupAmount, mpesaPhone);
-  };
-
-  const handleQuickBuy = async (item: string, price: number) => {
+  const handleSpendMock = async (amount: number, item: string) => {
     try {
-      setIsSpending(true);
-      await spendCashless(price, `${item} (Food Court #4)`);
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setIsSpending(false);
+      setIsProcessing(true);
+      await spendCashless(amount, item);
+      setIsProcessing(false);
+    } catch (err: any) {
+      alert(err.message || 'Payment failed');
+      setIsProcessing(false);
     }
   };
 
+  const handleTopupSubmit = async () => {
+    setIsTopupModalOpen(false);
+    await topupWallet(topupAmount, phone);
+  };
+
   return (
-    <div className="p-4 space-y-4">
-      {/* Wallet Balance Card */}
-      <div className="bg-gradient-to-br from-[#12121A] via-[#1E1E2D] to-[#0A0A0F] rounded-[20px] p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#00E676] flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>CASHLESS WRISTBAND WALLET</span>
-            </span>
-            <span className="text-[10px] font-mono text-white/60">KES NATIVE</span>
-          </div>
-
-          <div>
-            <div className="text-xs text-white/70">Available Balance</div>
-            <div className="font-display font-bold text-3xl text-white tracking-tight">
-              KES {wallet.balance.toLocaleString()}
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <Button
-              size="md"
-              variant="success"
-              onClick={() => setIsTopupModalOpen(true)}
-              className="w-full bg-[#00A859] hover:bg-[#00924d] text-white font-bold text-xs"
-              leftIcon={<Plus className="w-4 h-4" />}
-            >
-              Top Up with M-Pesa STK
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Cashless Barcode Pass for Vendors */}
-      <div className="bg-white rounded-[14px] border border-[#E2E4EB] p-4 text-center space-y-3 shadow-sm">
-        <div className="text-xs font-bold text-[#12121A]">Vendor Scan Code</div>
-        <p className="text-[11px] text-[#717182]">
-          Present this QR code at any bar or food court counter for instant 1-tap cashless checkout.
+    <div className="space-y-4">
+      {/* Header Info */}
+      <div className="text-center space-y-1">
+        <h2 className="font-display font-bold text-xl text-white">
+          Cashless Wristband Wallet
+        </h2>
+        <p className="text-xs text-ag-text-secondary font-mono">
+          Lipa Na M-Pesa Native Fast Bar Checkout
         </p>
-
-        <div className="p-3 bg-[#F8F9FC] border border-[#E2E4EB] rounded-[12px] inline-block mx-auto">
-          <QRCodeSVG value={`ANTIGRAVITY_WALLET:${wallet.id}`} size={140} level="M" fgColor="#12121A" />
-        </div>
-        <div className="text-[10px] font-mono text-[#717182]">Wallet ID: {wallet.id.substring(0, 16)}...</div>
       </div>
 
-      {/* Fast Demo Spending Simulator (Quick Buy) */}
-      <div className="bg-white rounded-[14px] border border-[#E2E4EB] p-4 space-y-2.5 shadow-sm">
-        <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#717182]">
-          Instant Demo Vendor Simulators
+      {/* Main Balance Display Card */}
+      <Card className="p-6 bg-gradient-to-br from-ag-surface via-ag-black to-ag-surface border-2 border-ag-green/40 shadow-2xl text-center space-y-4">
+        <div className="flex items-center justify-between text-xs font-mono text-ag-text-secondary">
+          <span>Wristband Balance</span>
+          <Badge variant="green" size="sm">
+            ACTIVE NFC / QR
+          </Badge>
+        </div>
+
+        <div>
+          <div className="text-xs font-mono text-ag-text-muted">Available Funds</div>
+          <div className="font-display font-bold text-4xl text-white tracking-tight mt-1">
+            KES {wallet.balance.toLocaleString()}
+          </div>
+        </div>
+
+        {/* Top Up via M-Pesa Button */}
+        <Button
+          size="lg"
+          variant="primary"
+          onClick={() => setIsTopupModalOpen(true)}
+          className="w-full font-bold text-sm h-12 shadow-xl shadow-ag-green/20"
+          leftIcon={<Plus className="w-4 h-4" />}
+        >
+          Top Up via M-Pesa
+        </Button>
+      </Card>
+
+      {/* Quick Spend Simulator (Drinks & Food) */}
+      <Card className="p-4 space-y-3 bg-ag-surface border-ag-border">
+        <div className="text-xs font-mono font-semibold uppercase tracking-wider text-ag-text-muted">
+          Festival Vendor Stations (Demo 1-Tap)
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickBuy('Tusker Lager (500ml)', 350)}
-            disabled={isSpending || wallet.balance < 350}
-            className="text-xs bg-[#F8F9FC] text-[#12121A] border-[#E2E4EB] justify-start"
-            leftIcon={<Beer className="w-3.5 h-3.5 text-amber-500" />}
+          <button
+            onClick={() => handleSpendMock(350, 'Cold Tusker Lager')}
+            disabled={isProcessing || wallet.balance < 350}
+            className="p-3 rounded-[8px] bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border flex flex-col items-center justify-center space-y-1 text-center transition-colors disabled:opacity-50"
           >
-            Tusker (KES 350)
-          </Button>
+            <Beer className="w-5 h-5 text-ag-yellow" />
+            <span className="text-xs font-bold text-white">Tusker Lager</span>
+            <span className="text-[10px] font-mono text-ag-green font-semibold">KES 350</span>
+          </button>
 
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickBuy('Nyama Choma Platter', 750)}
-            disabled={isSpending || wallet.balance < 750}
-            className="text-xs bg-[#F8F9FC] text-[#12121A] border-[#E2E4EB] justify-start"
-            leftIcon={<Utensils className="w-3.5 h-3.5 text-orange-500" />}
+          <button
+            onClick={() => handleSpendMock(600, 'Nyama Choma Platter')}
+            disabled={isProcessing || wallet.balance < 600}
+            className="p-3 rounded-[8px] bg-ag-black/60 hover:bg-ag-surface-hover border border-ag-border flex flex-col items-center justify-center space-y-1 text-center transition-colors disabled:opacity-50"
           >
-            Choma (KES 750)
-          </Button>
+            <Coffee className="w-5 h-5 text-ag-orange" />
+            <span className="text-xs font-bold text-white">Nyama Choma</span>
+            <span className="text-[10px] font-mono text-ag-green font-semibold">KES 600</span>
+          </button>
         </div>
-      </div>
+      </Card>
 
-      {/* Transaction History */}
-      <div className="bg-white rounded-[14px] border border-[#E2E4EB] p-4 space-y-3 shadow-sm">
-        <div className="text-xs font-bold text-[#12121A]">Recent Activity</div>
+      {/* Transaction History List */}
+      <Card className="p-4 space-y-3 bg-ag-surface border-ag-border">
+        <div className="flex items-center justify-between pb-2 border-b border-ag-border">
+          <div className="font-display font-bold text-xs uppercase tracking-wider text-white">
+            Transaction History
+          </div>
+          <span className="text-[10px] font-mono text-ag-text-muted">Last 10 Actions</span>
+        </div>
+
         <div className="space-y-2">
-          {userTransactions.length === 0 ? (
-            <p className="text-xs text-[#717182] text-center py-3">No transactions yet.</p>
-          ) : (
-            userTransactions.slice(0, 5).map((tx) => (
+          {userTransactions.map((tx) => {
+            const isTopup = tx.transaction_type === 'topup';
+            return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-2.5 bg-[#F8F9FC] rounded-[8px] border border-[#E2E4EB] text-xs"
+                className="p-2.5 rounded bg-ag-black/40 border border-ag-border flex items-center justify-between text-xs font-mono"
               >
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                      tx.transaction_type === 'topup'
-                        ? 'bg-[#00A859]/10 text-[#00A859]'
-                        : 'bg-red-50 text-red-500'
+                      isTopup ? 'bg-ag-green-dim text-ag-green' : 'bg-ag-blue-dim text-ag-blue'
                     }`}
                   >
-                    {tx.transaction_type === 'topup' ? (
-                      <ArrowDownLeft className="w-4 h-4" />
-                    ) : (
-                      <ArrowUpRight className="w-4 h-4" />
-                    )}
+                    {isTopup ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                   </div>
                   <div>
-                    <div className="font-semibold text-[#12121A]">{tx.description}</div>
-                    <div className="text-[10px] font-mono text-[#717182]">
+                    <div className="font-semibold text-white truncate max-w-[170px]">
+                      {tx.description}
+                    </div>
+                    <div className="text-[10px] text-ag-text-muted">
                       {new Date(tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 </div>
 
-                <div
-                  className={`font-mono font-bold ${
-                    tx.transaction_type === 'topup' ? 'text-[#00A859]' : 'text-[#12121A]'
-                  }`}
-                >
-                  {tx.transaction_type === 'topup' ? '+' : '-'}KES {tx.amount.toLocaleString()}
+                <div className={`font-bold ${isTopup ? 'text-ag-green' : 'text-white'}`}>
+                  {isTopup ? '+' : '-'} KES {tx.amount.toLocaleString()}
                 </div>
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
-      </div>
+      </Card>
 
       {/* M-Pesa Topup Modal */}
       <MpesaModal
         isOpen={isTopupModalOpen}
         onClose={() => setIsTopupModalOpen(false)}
         amount={topupAmount}
-        title="Top Up Cashless Wallet"
-        description="Enter amount and Safaricom number for instant balance credit"
-        onSuccess={handleTopupSuccess}
+        phoneNumber={phone}
+        onSuccess={handleTopupSubmit}
       />
     </div>
   );
