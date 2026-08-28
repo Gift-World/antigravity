@@ -1,0 +1,17 @@
+{
+  "name": "ANTIGRAVITY — Crowd Intelligence & Safety",
+  "short_name": "ANTIGRAVITY",
+  "description": "Real-time crowd intelligence, crush prevention, anti-theft, and event safety platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
