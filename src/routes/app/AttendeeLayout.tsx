@@ -35,7 +35,7 @@ export const AttendeeLayout: React.FC = () => {
           <div className="flex items-center gap-2">
             <div className="text-right hidden sm:block">
               <div className="text-xs font-bold text-white leading-tight truncate max-w-[120px]">
-                {currentUser.full_name || 'Attendee'}
+                {currentUser.full_name?.replace('Commander ', '').replace('Captain ', '') || 'Attendee'}
               </div>
             </div>
 
