@@ -168,10 +168,24 @@ export const LiveCommandCenter: React.FC = () => {
           <div className="hidden xl:flex items-center gap-3 text-xs bg-ag-surface-hover/60 px-4 py-2 rounded-xl border border-ag-border">
             <DoorOpen className="w-4 h-4 text-ag-blue" />
             <span className="text-ag-text-muted">Gates:</span>
-            <span className="text-white font-mono"><strong>A:</strong> 48/min</span>
-            <span className="text-white font-mono"><strong>B:</strong> 62/min</span>
-            <span className="text-white font-mono"><strong>C:</strong> 34/min</span>
-            <span className="text-white font-mono"><strong>D:</strong> 18/min</span>
+            {Object.entries(scansPerMinuteByGate).map(([gateId, stats], idx) => {
+              const gateLabel =
+                gateId === 'c1111111-1111-1111-1111-111111111111'
+                  ? 'A'
+                  : gateId === 'c2222222-2222-2222-2222-222222222222'
+                  ? 'B'
+                  : gateId === 'c3333333-3333-3333-3333-333333333333'
+                  ? 'C'
+                  : gateId === 'c4444444-4444-4444-4444-444444444444'
+                  ? 'D'
+                  : String.fromCharCode(65 + idx);
+
+              return (
+                <span key={gateId} className="text-white font-mono">
+                  <strong>{gateLabel}:</strong> {stats.in}/min
+                </span>
+              );
+            })}
           </div>
         </div>
 

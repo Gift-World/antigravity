@@ -7,21 +7,24 @@ import { AlertTriangle, ShieldAlert, HeartPulse, Smartphone } from 'lucide-react
 import { ZoneDetailModal } from './ZoneDetailModal';
 import { formatNumber } from '@/lib/utils';
 
+import { NYAYO_ZONES } from '@/lib/seedData';
+
 export const VenueHeatmap: React.FC = () => {
   const {
     events,
+    venues,
     activeEventId,
     densityReadings,
     incidents,
     selectedZoneId,
     setSelectedZoneId,
-    scansPerMinuteByGate,
   } = useAppStore();
 
   const [inspectZone, setInspectZone] = useState<{ zone: VenueZone; reading: ZoneDensityReading } | null>(null);
 
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
-  const zones = activeEvent.venue?.zones || [];
+  const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id);
+  const zones = venueObj?.zones && venueObj.zones.length > 0 ? venueObj.zones : NYAYO_ZONES;
 
   // SVG Zone polygon definitions (Layout mapped for Nyayo National Stadium)
   const zoneSVGMappings: Record<

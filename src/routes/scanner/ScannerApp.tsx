@@ -48,8 +48,8 @@ export const ScannerApp: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
-  // Total scanned through this scanner
-  const totalScannedCount = 847 + gateScans.length;
+  // Total scanned through this scanner gate
+  const totalScannedCount = gateScans.filter((s) => s.gate_id === selectedGate).length;
 
   useEffect(() => {
     return () => {

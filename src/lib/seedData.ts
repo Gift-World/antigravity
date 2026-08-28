@@ -212,6 +212,7 @@ export const INITIAL_VENUES: Venue[] = [
     total_capacity: 10000,
     venue_map_url: '/maps/kicc.svg',
     created_at: new Date(Date.now() - 80 * 86400000).toISOString(),
+    zones: NYAYO_ZONES.map(z => ({ ...z, venue_id: 'b2222222-2222-2222-2222-222222222222' })),
   },
   {
     id: 'b3333333-3333-3333-3333-333333333333',
@@ -224,6 +225,7 @@ export const INITIAL_VENUES: Venue[] = [
     total_capacity: 15000,
     venue_map_url: '/maps/carnivore.svg',
     created_at: new Date(Date.now() - 70 * 86400000).toISOString(),
+    zones: NYAYO_ZONES.map(z => ({ ...z, venue_id: 'b3333333-3333-3333-3333-333333333333' })),
   },
   {
     id: 'b4444444-4444-4444-4444-444444444444',
@@ -236,6 +238,7 @@ export const INITIAL_VENUES: Venue[] = [
     total_capacity: 25000,
     venue_map_url: '/maps/uhuru_gardens.svg',
     created_at: new Date(Date.now() - 60 * 86400000).toISOString(),
+    zones: NYAYO_ZONES.map(z => ({ ...z, venue_id: 'b4444444-4444-4444-4444-444444444444' })),
   },
 ];
 

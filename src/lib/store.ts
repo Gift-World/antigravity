@@ -32,6 +32,7 @@ import {
   INITIAL_TICKETS,
   INITIAL_WALLET,
   INITIAL_TRANSACTIONS,
+  NYAYO_ZONES,
 } from '@/lib/seedData';
 import { soundManager } from '@/lib/audio';
 import { createTicketQRPayload } from '@/lib/qr';
@@ -184,15 +185,32 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await supabaseService.fetchInitialDataset();
       if (res.success && res.data) {
         const d = res.data;
+        const populatedVenues = (d.venues.length ? d.venues : INITIAL_VENUES).map((v) => ({
+          ...v,
+          zones: v.zones && v.zones.length > 0 ? v.zones : NYAYO_ZONES,
+        }));
+        const venueMap = new Map(populatedVenues.map((v) => [v.id, v]));
+
+        const populatedEvents = (d.events.length ? d.events : INITIAL_EVENTS).map((e) => {
+          const matchedVenue = venueMap.get(e.venue_id) || e.venue || populatedVenues[0];
+          return {
+            ...e,
+            venue: {
+              ...matchedVenue,
+              zones: matchedVenue.zones && matchedVenue.zones.length > 0 ? matchedVenue.zones : NYAYO_ZONES,
+            },
+          };
+        });
+
         set({
           isLoadingInitialData: false,
           isSupabaseConnected: true,
           currentOrg: d.organizations[0] || INITIAL_ORG,
           users: d.users.length ? d.users : INITIAL_USERS,
           currentUser: d.users[0] || INITIAL_USERS[0],
-          venues: d.venues.length ? d.venues : INITIAL_VENUES,
-          events: d.events.length ? d.events : INITIAL_EVENTS,
-          activeEventId: d.events[0]?.id || INITIAL_EVENTS[0].id,
+          venues: populatedVenues,
+          events: populatedEvents,
+          activeEventId: populatedEvents[0]?.id || INITIAL_EVENTS[0].id,
           tickets: d.tickets.length ? d.tickets : INITIAL_TICKETS,
           densityReadings: d.densityReadings.length ? d.densityReadings : INITIAL_DENSITY_READINGS,
           incidents: d.incidents.length ? d.incidents : INITIAL_INCIDENTS,

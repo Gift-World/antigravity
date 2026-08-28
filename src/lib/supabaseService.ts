@@ -71,6 +71,7 @@ export const supabaseService = {
         orgsRes,
         usersRes,
         venuesRes,
+        venueZonesRes,
         eventsRes,
         ticketsRes,
         densityRes,
@@ -81,8 +82,9 @@ export const supabaseService = {
       ] = await Promise.all([
         supabase.from('organizations').select('*'),
         supabase.from('users').select('*'),
-        supabase.from('venues').select('*, zones:venue_zones(*)'),
-        supabase.from('events').select('*, venue:venues(*, zones:venue_zones(*))'),
+        supabase.from('venues').select('*'),
+        supabase.from('venue_zones').select('*'),
+        supabase.from('events').select('*'),
         supabase.from('tickets').select('*'),
         supabase.from('zone_density_readings').select('*').order('timestamp', { ascending: false }),
         supabase.from('incidents').select('*').order('created_at', { ascending: false }),
@@ -96,6 +98,32 @@ export const supabaseService = {
         return { success: false };
       }
 
+      // Group venue zones by venue_id
+      const zonesList = (venueZonesRes.data as VenueZone[]) || [];
+      const zonesByVenue: Record<string, VenueZone[]> = {};
+      for (const z of zonesList) {
+        if (!zonesByVenue[z.venue_id]) {
+          zonesByVenue[z.venue_id] = [];
+        }
+        zonesByVenue[z.venue_id].push(z);
+      }
+
+      // Attach zones to each venue
+      const rawVenues = (venuesRes.data as Venue[]) || [];
+      const populatedVenues = rawVenues.map((v) => ({
+        ...v,
+        zones: zonesByVenue[v.id] || v.zones || [],
+      }));
+
+      const venueMap = new Map(populatedVenues.map((v) => [v.id, v]));
+
+      // Attach populated venue (with zones) to each event
+      const rawEvents = (eventsRes.data as Event[]) || [];
+      const populatedEvents = rawEvents.map((e) => ({
+        ...e,
+        venue: venueMap.get(e.venue_id) || populatedVenues[0],
+      }));
+
       const walletsMap: Record<string, CashlessWallet> = {};
       if (walletsRes.data) {
         for (const w of walletsRes.data as CashlessWallet[]) {
@@ -108,8 +136,8 @@ export const supabaseService = {
         data: {
           organizations: (orgsRes.data as Organization[]) || [],
           users: (usersRes.data as User[]) || [],
-          venues: (venuesRes.data as Venue[]) || [],
-          events: (eventsRes.data as Event[]) || [],
+          venues: populatedVenues,
+          events: populatedEvents,
           tickets: (ticketsRes.data as Ticket[]) || [],
           densityReadings: (densityRes.data as ZoneDensityReading[]) || [],
           incidents: (incidentsRes.data as Incident[]) || [],

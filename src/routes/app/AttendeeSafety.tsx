@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { NYAYO_ZONES } from '@/lib/seedData';
 import {
   Compass,
   AlertTriangle,
@@ -13,21 +14,84 @@ import {
 } from 'lucide-react';
 
 export const AttendeeSafety: React.FC = () => {
-  const { densityReadings, events, activeEventId, triggerGuardianSOS } = useAppStore();
-  const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
+  const {
+    densityReadings,
+    events,
+    activeEventId,
+    triggerGuardianSOS,
+    currentUser,
+    tickets,
+    gateScans,
+    venues,
+  } = useAppStore();
 
-  // Attendee in Main Floor North
-  const currentZoneReading =
-    densityReadings.find((r) => r.zone_id === 'c6666666-6666-6666-6666-666666666666') ||
+  const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
+  const venueObj = activeEvent?.venue || venues.find((v) => v.id === activeEvent?.venue_id);
+  const allZones = venueObj?.zones && venueObj.zones.length > 0 ? venueObj.zones : NYAYO_ZONES;
+
+  // Gate to zone mapping and nearest exit metadata
+  const gateToZoneMap: Record<string, { zoneId: string; exitText: string; exitDistance: string }> = {
+    'c1111111-1111-1111-1111-111111111111': {
+      zoneId: 'c6666666-6666-6666-6666-666666666666',
+      exitText: 'Exit 1 & 2 (North Gates)',
+      exitDistance: 'Approx. 45 meters ahead on your left',
+    },
+    'c2222222-2222-2222-2222-222222222222': {
+      zoneId: 'c7777777-7777-7777-7777-777777777777',
+      exitText: 'Exit Gate B (East Corridor)',
+      exitDistance: 'Approx. 60 meters towards east concourse',
+    },
+    'c3333333-3333-3333-3333-333333333333': {
+      zoneId: 'ccccccc0-cccc-cccc-cccc-cccccccccccc',
+      exitText: 'Exit Gate C (South Plaza)',
+      exitDistance: 'Approx. 35 meters behind the food court',
+    },
+    'c4444444-4444-4444-4444-444444444444': {
+      zoneId: 'c8888888-8888-8888-8888-888888888888',
+      exitText: 'VIP Fast Track Exit (West Wing)',
+      exitDistance: 'Approx. 25 meters down the VIP corridor',
+    },
+  };
+
+  // Find user's ticket & recent scan
+  const userTicket = tickets.find((t) => t.attendee_id === currentUser.id);
+  const userRecentScan = userTicket
+    ? gateScans.find((s) => s.ticket_id === userTicket.id)
+    : gateScans.find((s) => s.scanned_by === currentUser.id);
+
+  // Highest density zone fallback if no scan exists
+  const highestDensityReading =
+    [...densityReadings].sort((a, b) => b.density_per_sqm - a.density_per_sqm)[0] ||
     densityReadings[0];
+
+  let targetZoneId = highestDensityReading?.zone_id || allZones[0]?.id;
+  let exitInfo = {
+    exitText: 'Exit 1 & 2 (North Gates)',
+    exitDistance: 'Approx. 45 meters ahead on your left',
+  };
+
+  if (userRecentScan?.gate_id && gateToZoneMap[userRecentScan.gate_id]) {
+    targetZoneId = gateToZoneMap[userRecentScan.gate_id].zoneId;
+    exitInfo = {
+      exitText: gateToZoneMap[userRecentScan.gate_id].exitText,
+      exitDistance: gateToZoneMap[userRecentScan.gate_id].exitDistance,
+    };
+  }
+
+  const currentZoneReading =
+    densityReadings.find((r) => r.zone_id === targetZoneId) ||
+    highestDensityReading ||
+    densityReadings[0];
+
+  const matchedZone = allZones.find((z) => z.id === currentZoneReading?.zone_id);
+  const zoneDisplayName = matchedZone?.name || 'Main Floor (Front Area)';
 
   const [sosProgress, setSosProgress] = useState(0);
   const [isSosTriggered, setIsSosTriggered] = useState(false);
   const pressTimerRef = useRef<any>(null);
 
-  const isDanger = currentZoneReading.density_per_sqm >= 5.5;
-  const isCaution = currentZoneReading.density_per_sqm >= 4.5 && !isDanger;
-  const isSafe = !isDanger && !isCaution;
+  const isDanger = currentZoneReading ? currentZoneReading.density_per_sqm >= 5.5 : false;
+  const isCaution = currentZoneReading ? currentZoneReading.density_per_sqm >= 4.5 && !isDanger : false;
 
   const handleMouseDown = () => {
     setSosProgress(0);
@@ -42,7 +106,7 @@ export const AttendeeSafety: React.FC = () => {
       if (progress >= 100) {
         clearInterval(pressTimerRef.current);
         setIsSosTriggered(true);
-        triggerGuardianSOS('Attendee Help Button Pressed');
+        triggerGuardianSOS(`Attendee Help Button Pressed in ${zoneDisplayName}`);
       }
     }, 40);
   };
@@ -88,7 +152,7 @@ export const AttendeeSafety: React.FC = () => {
             </span>
           </div>
 
-          <div className="font-display font-bold text-lg text-white">Main Floor (Front Area)</div>
+          <div className="font-display font-bold text-lg text-white">{zoneDisplayName}</div>
           <p className="text-xs text-ag-text-secondary max-w-xs mx-auto">
             {isDanger
               ? 'High crowd pressure detected. Please follow exit signs to ease flow.'
@@ -106,8 +170,8 @@ export const AttendeeSafety: React.FC = () => {
             <Compass className="w-4 h-4" />
             <span>Nearest Exit</span>
           </div>
-          <div className="font-bold text-white text-base">Exit 1 & 2 (North Gates)</div>
-          <div className="text-xs text-ag-text-muted">Approx. 45 meters ahead on your left</div>
+          <div className="font-bold text-white text-base">{exitInfo.exitText}</div>
+          <div className="text-xs text-ag-text-muted">{exitInfo.exitDistance}</div>
         </div>
 
         <div className="w-12 h-12 rounded-2xl bg-ag-green/20 border border-ag-green flex items-center justify-center text-ag-green shrink-0">
@@ -150,7 +214,7 @@ export const AttendeeSafety: React.FC = () => {
         </button>
 
         <p className="text-[11px] text-ag-text-muted">
-          Only hold in an emergency. Dispatches nearby stadium security to your location.
+          Only hold in an emergency. Dispatches nearby stadium security to {zoneDisplayName}.
         </p>
       </div>
     </div>
