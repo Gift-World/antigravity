@@ -114,14 +114,14 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-ag-black text-ag-text-primary selection:bg-ag-blue/30 selection:text-ag-green relative overflow-hidden flex flex-col font-sans">
+    <div className="min-h-screen w-full bg-ag-black text-ag-text-primary selection:bg-ag-blue/30 selection:text-ag-green relative overflow-x-hidden flex flex-col font-sans">
       {/* Background BLE Mesh Constellation */}
       <MeshCanvas />
 
       {/* Navigation Header */}
-      <header className="h-20 border-b border-ag-border/60 bg-ag-black/80 backdrop-blur-md px-6 md:px-16 sticky top-0 z-40">
+      <header className="w-full h-20 border-b border-ag-border/60 bg-ag-black/85 backdrop-blur-md sticky top-0 z-40 px-6 sm:px-10 lg:px-16">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group shrink-0">
             <AntigravityLogo size="md" />
           </Link>
 
@@ -166,20 +166,20 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* HERO SECTION */}
-      <section className="relative z-10 pt-16 md:pt-24 pb-20 px-6 md:px-16">
+      {/* HERO SECTION WITH ROBUST HORIZONTAL PADDING CONTAINER */}
+      <section className="relative z-10 w-full pt-16 md:pt-24 pb-20 px-6 sm:px-10 lg:px-16">
         <div className="max-w-7xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 bg-ag-red-dim border border-ag-red/40 px-4 py-1.5 rounded-full text-xs font-mono text-ag-red animate-pulse shadow-lg shadow-ag-red/10">
             <Radio className="w-3.5 h-3.5" />
             <span>AFRICA’S FIRST REAL-TIME CROWD LIFE-SAFETY PLATFORM</span>
           </div>
 
-          <div className="space-y-4 max-w-5xl mx-auto">
-            <h1 className="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.08] text-center">
+          <div className="space-y-5 max-w-5xl mx-auto">
+            <h1 className="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.08] text-center max-w-4xl mx-auto">
               Never Lose Another Life to a Preventable Crush.
             </h1>
 
-            <p className="text-base sm:text-lg md:text-xl text-ag-text-secondary max-w-3xl mx-auto font-sans leading-relaxed pt-2">
+            <p className="text-base sm:text-lg md:text-xl text-ag-text-secondary max-w-3xl mx-auto font-sans leading-relaxed pt-1">
               ANTIGRAVITY is the force that counteracts the crushing gravity of crowds. We predict density surges before stampedes occur, stop phone theft via BLE mesh, and give African event organizers total operational control.
             </p>
           </div>
@@ -206,12 +206,12 @@ export const LandingPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Quick Demo Mode Links */}
+          {/* Quick Direct Launch Links */}
           <div className="pt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
             <span className="text-ag-text-muted">Direct Launch:</span>
             <Link
               to={`/dashboard/events/${activeEvent.id}/live`}
-              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-white transition-colors flex items-center gap-1.5"
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3.5 py-1.5 rounded-md text-white transition-colors flex items-center gap-1.5"
             >
               <Radio className="w-3.5 h-3.5 text-ag-red" />
               <span>Mission Control (Live Stadium)</span>
@@ -219,7 +219,7 @@ export const LandingPage: React.FC = () => {
             <Link
               to="/scanner"
               target="_blank"
-              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-green transition-colors flex items-center gap-1.5"
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3.5 py-1.5 rounded-md text-ag-green transition-colors flex items-center gap-1.5"
             >
               <QrCode className="w-3.5 h-3.5 text-ag-green" />
               <span>Gate Scanner PWA</span>
@@ -227,7 +227,7 @@ export const LandingPage: React.FC = () => {
             <Link
               to="/app"
               target="_blank"
-              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3 py-1.5 rounded-md text-ag-blue transition-colors flex items-center gap-1.5"
+              className="bg-ag-surface hover:bg-ag-surface-hover border border-ag-border px-3.5 py-1.5 rounded-md text-ag-blue transition-colors flex items-center gap-1.5"
             >
               <Smartphone className="w-3.5 h-3.5 text-ag-blue" />
               <span>Attendee Smart App</span>
@@ -237,7 +237,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* KAREN LOJORE STORY — THE EMOTIONAL ANCHOR */}
-      <section id="mission" className="relative z-10 py-20 px-6 md:px-16 bg-ag-surface/40 border-y border-ag-border">
+      <section id="mission" className="relative z-10 w-full py-20 px-6 sm:px-10 lg:px-16 bg-ag-surface/40 border-y border-ag-border">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Story narrative */}
@@ -259,7 +259,7 @@ export const LandingPage: React.FC = () => {
                 <p>
                   There was no crowd monitoring. No density tracking. No automated alerts. No emergency egress directives. And zero accountability.
                 </p>
-                <p className="text-white font-medium bg-ag-black/50 p-4 rounded-[8px] border-l-4 border-ag-red">
+                <p className="text-white font-medium bg-ag-black/60 p-4 rounded-[8px] border-l-4 border-ag-red">
                   "This keeps happening across live events in Africa because stadiums and festival grounds operate with zero safety technology. ANTIGRAVITY was built to make sure another life is never lost to a preventable crush."
                 </p>
               </div>
@@ -302,7 +302,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* HOW IT WORKS (3 STEPS) */}
-      <section id="how-it-works" className="relative z-10 py-24 px-6 md:px-16">
+      <section id="how-it-works" className="relative z-10 w-full py-24 px-6 sm:px-10 lg:px-16">
         <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-mono uppercase tracking-widest text-ag-blue">
@@ -331,7 +331,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ALL 6 CORE FEATURES GRID */}
-      <section id="features" className="relative z-10 py-20 px-6 md:px-16 bg-ag-surface/30 border-t border-ag-border">
+      <section id="features" className="relative z-10 w-full py-20 px-6 sm:px-10 lg:px-16 bg-ag-surface/30 border-t border-ag-border">
         <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-mono uppercase tracking-widest text-ag-green">
@@ -366,7 +366,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* COMMAND CENTER HERO INTERACTIVE PREVIEW */}
-      <section id="command-center" className="relative z-10 py-24 px-6 md:px-16 border-t border-ag-border">
+      <section id="command-center" className="relative z-10 w-full py-24 px-6 sm:px-10 lg:px-16 border-t border-ag-border">
         <div className="max-w-7xl mx-auto space-y-10 text-center">
           <div className="space-y-3 max-w-2xl mx-auto">
             <Badge variant="red" pulse size="md">
@@ -424,9 +424,9 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-ag-border bg-ag-black px-6 md:px-16 py-12 text-xs font-mono text-ag-text-secondary">
+      <footer className="relative z-10 w-full border-t border-ag-border bg-ag-black px-6 sm:px-10 lg:px-16 py-12 text-xs font-mono text-ag-text-secondary">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <AntigravityLogo size="sm" />
           </div>
 

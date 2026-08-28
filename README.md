@@ -2,9 +2,19 @@
 
 > **The force that counteracts the crushing gravity of crowds.**
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FGift-World%2Fantigravity)
+
 ANTIGRAVITY is a real-time crowd intelligence, life-safety, anti-theft, and cashless ticketing platform purpose-built for high-density live events across Kenya and Africa.
 
 On December 20, 2025, 20-year-old Kenyan university student **Karen Lojore** was crushed to death in a stampede at Nyayo National Stadium during a concert. There was no crowd monitoring, no density tracking, no automated alerts, and no accountability. ANTIGRAVITY was engineered to eliminate stampedes and crowd crushes forever.
+
+---
+
+## 🚀 One-Click Cloud Deployment (Vercel)
+
+Click the button below to deploy your own instance of ANTIGRAVITY to Vercel in 60 seconds with automated SPA rewrites and edge performance:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FGift-World%2Fantigravity)
 
 ---
 
@@ -35,6 +45,7 @@ On December 20, 2025, 20-year-old Kenyan university student **Karen Lojore** was
 - **Audio Engine**: Web Audio API Procedural Synthesizer.
 - **Backend / Database**: Supabase (PostgreSQL, Realtime Pub/Sub, RLS Security Policies, Deno Edge Functions).
 - **Payment Gateway**: Safaricom Daraja API (Lipa Na M-Pesa Online STK Push).
+- **Deployment**: Vercel SPA with custom rewrites.
 
 ---
 
@@ -42,7 +53,7 @@ On December 20, 2025, 20-year-old Kenyan university student **Karen Lojore** was
 
 ### 1. Install Dependencies
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 2. Configure Environment Variables
