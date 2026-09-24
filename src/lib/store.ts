@@ -29,7 +29,7 @@ import { soundManager } from '@/lib/audio';
 import { createTicketQRPayload, getDeviceFingerprint } from '@/lib/qr';
 import { triggerMpesaSTKPush } from '@/lib/mpesa';
 import { supabaseService } from '@/lib/supabaseService';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface AppState {
   // Loading & Connection state
@@ -183,6 +183,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Initial Data Fetcher from Supabase (with Realtime multi-browser sync)
   initData: async () => {
+    if (!isSupabaseConfigured) {
+      set({ isLoadingInitialData: false, isSupabaseConnected: false });
+      return;
+    }
     try {
       const res = await supabaseService.fetchInitialDataset();
       if (res.success && res.data) {
