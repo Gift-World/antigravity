@@ -172,6 +172,70 @@ export interface Event {
   venue?: Venue;
 }
 
+export type EventTaskStatus = 'not_started' | 'in_progress' | 'blocked' | 'complete';
+export type SupplierStatus = 'shortlisted' | 'contracted' | 'confirmed' | 'on_site' | 'cancelled';
+
+export interface EventTask {
+  id: string;
+  event_id: string;
+  title: string;
+  workstream: string;
+  owner_name: string;
+  due_at?: string | null;
+  status: EventTaskStatus;
+  proof_url?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventSupplier {
+  id: string;
+  event_id: string;
+  name: string;
+  category: string;
+  contact_name?: string | null;
+  contact_phone?: string | null;
+  agreed_amount?: number | null;
+  deposit_paid?: number | null;
+  balance_due?: number | null;
+  status: SupplierStatus;
+  arrival_window?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BudgetLineStatus = 'draft' | 'approved' | 'committed' | 'paid';
+export type PaymentStatus = 'planned' | 'awaiting_approval' | 'due' | 'paid' | 'overdue';
+
+export interface EventBudgetLine {
+  id: string;
+  event_id: string;
+  category: string;
+  description: string;
+  owner_name: string;
+  planned_amount: number;
+  committed_amount: number;
+  paid_amount: number;
+  status: BudgetLineStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventPayment {
+  id: string;
+  event_id: string;
+  supplier_id?: string | null;
+  payee_name: string;
+  description: string;
+  amount: number;
+  due_at?: string | null;
+  paid_at?: string | null;
+  status: PaymentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Ticket {
   id: string;
   event_id: string;

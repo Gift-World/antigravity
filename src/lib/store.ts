@@ -17,6 +17,10 @@ import {
   Transaction,
   GuardianDevice,
   WaitlistEntry,
+  EventTask,
+  EventSupplier,
+  EventBudgetLine,
+  EventPayment,
   UserRole,
   IncidentStatus,
   AlertSeverity,
@@ -48,6 +52,10 @@ interface AppState {
   transactions: Transaction[];
   guardianDevice: GuardianDevice | null;
   waitlist: WaitlistEntry[];
+  eventTasks: EventTask[];
+  eventSuppliers: EventSupplier[];
+  eventBudgetLines: EventBudgetLine[];
+  eventPayments: EventPayment[];
 
   // App UI State
   activeEventId: string;
@@ -92,6 +100,14 @@ interface AppState {
   addVenue: (venueData: Partial<Venue>) => Venue;
   addVenueZone: (venueId: string, zone: Partial<VenueZone>) => VenueZone;
   addUser: (userData: Omit<User, 'id' | 'created_at'>) => User;
+  createEventTask: (task: Omit<EventTask, 'id' | 'created_at' | 'updated_at'>) => EventTask;
+  updateEventTask: (taskId: string, updates: Partial<Pick<EventTask, 'title' | 'owner_name' | 'due_at' | 'status' | 'proof_url' | 'notes'>>) => void;
+  createEventSupplier: (supplier: Omit<EventSupplier, 'id' | 'created_at' | 'updated_at'>) => EventSupplier;
+  updateEventSupplier: (supplierId: string, updates: Partial<Pick<EventSupplier, 'status' | 'deposit_paid' | 'balance_due' | 'arrival_window'>>) => void;
+  createBudgetLine: (line: Omit<EventBudgetLine, 'id' | 'created_at' | 'updated_at'>) => EventBudgetLine;
+  updateBudgetLine: (lineId: string, updates: Partial<Pick<EventBudgetLine, 'planned_amount' | 'committed_amount' | 'paid_amount' | 'status'>>) => void;
+  createEventPayment: (payment: Omit<EventPayment, 'id' | 'created_at' | 'updated_at'>) => EventPayment;
+  updateEventPayment: (paymentId: string, updates: Partial<Pick<EventPayment, 'status' | 'paid_at'>>) => void;
 
   // Ticket & M-Pesa Actions
   purchaseTicket: (params: {
@@ -152,6 +168,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   transactions: [],
   guardianDevice: null,
   waitlist: [],
+  eventTasks: [],
+  eventSuppliers: [],
+  eventBudgetLines: [],
+  eventPayments: [],
 
   activeEventId: '',
   isSimulationActive: false,
@@ -276,6 +296,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           alerts: d.alerts,
           wallets: d.wallets,
           transactions: d.transactions,
+          eventTasks: d.eventTasks,
+          eventSuppliers: d.eventSuppliers,
+          eventBudgetLines: d.eventBudgetLines,
+          eventPayments: d.eventPayments,
           scansPerMinuteByGate: {
             'c1111111-1111-1111-1111-111111111111': { in: 48, out: 4 },
             'c2222222-2222-2222-2222-222222222222': { in: 62, out: 7 },
@@ -336,6 +360,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           gateScans: [],
           wallets: {},
           transactions: [],
+          eventTasks: [],
+          eventSuppliers: [],
+          eventBudgetLines: [],
+          eventPayments: [],
         });
       }
     } catch (err) {
@@ -353,6 +381,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         gateScans: [],
         wallets: {},
         transactions: [],
+        eventTasks: [],
+        eventSuppliers: [],
+        eventBudgetLines: [],
+        eventPayments: [],
       });
     }
   },
@@ -676,6 +708,62 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return newUser;
+  },
+
+  createEventTask: (taskData) => {
+    const now = new Date().toISOString();
+    const task: EventTask = { ...taskData, id: `task_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertEventTask(task);
+    set((state) => ({ eventTasks: [task, ...state.eventTasks] }));
+    return task;
+  },
+
+  updateEventTask: (taskId, updates) => {
+    if (get().isSupabaseConnected) supabaseService.updateEventTask(taskId, updates);
+    set((state) => ({
+      eventTasks: state.eventTasks.map((task) => task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task),
+    }));
+  },
+
+  createEventSupplier: (supplierData) => {
+    const now = new Date().toISOString();
+    const supplier: EventSupplier = { ...supplierData, id: `supplier_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertEventSupplier(supplier);
+    set((state) => ({ eventSuppliers: [supplier, ...state.eventSuppliers] }));
+    return supplier;
+  },
+
+  updateEventSupplier: (supplierId, updates) => {
+    if (get().isSupabaseConnected) supabaseService.updateEventSupplier(supplierId, updates);
+    set((state) => ({
+      eventSuppliers: state.eventSuppliers.map((supplier) => supplier.id === supplierId ? { ...supplier, ...updates, updated_at: new Date().toISOString() } : supplier),
+    }));
+  },
+
+  createBudgetLine: (lineData) => {
+    const now = new Date().toISOString();
+    const line: EventBudgetLine = { ...lineData, id: `budget_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertBudgetLine(line);
+    set((state) => ({ eventBudgetLines: [line, ...state.eventBudgetLines] }));
+    return line;
+  },
+
+  updateBudgetLine: (lineId, updates) => {
+    if (get().isSupabaseConnected) supabaseService.updateBudgetLine(lineId, updates);
+    set((state) => ({ eventBudgetLines: state.eventBudgetLines.map((line) => line.id === lineId ? { ...line, ...updates, updated_at: new Date().toISOString() } : line) }));
+  },
+
+  createEventPayment: (paymentData) => {
+    const now = new Date().toISOString();
+    const payment: EventPayment = { ...paymentData, id: `payment_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertEventPayment(payment);
+    set((state) => ({ eventPayments: [payment, ...state.eventPayments] }));
+    return payment;
+  },
+
+  updateEventPayment: (paymentId, updates) => {
+    if (get().isSupabaseConnected) supabaseService.updateEventPayment(paymentId, updates);
+    set((state) => ({ eventPayments: state.eventPayments.map((payment) => payment.id === paymentId ? { ...payment, ...updates, updated_at: new Date().toISOString() } : payment) }));
   },
 
   purchaseTicket: async ({ eventId, tier, price, fullName, email, phone, mpesaPhone }) => {

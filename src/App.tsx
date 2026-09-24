@@ -2,14 +2,14 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from '@/lib/store';
-import { LandingPage } from '@/routes/LandingPage';
+import { CleanLandingPage } from '@/routes/CleanLandingPage';
 import { Login } from '@/routes/auth/Login';
 import { Register } from '@/routes/auth/Register';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHome } from '@/routes/dashboard/DashboardHome';
 import { EventList } from '@/routes/dashboard/events/EventList';
 import { CreateEvent } from '@/routes/dashboard/events/CreateEvent';
-import { EventDetail } from '@/routes/dashboard/events/EventDetail';
+import { EventHQ } from '@/routes/dashboard/events/EventHQ';
 import { LiveCommandCenter } from '@/components/live/LiveCommandCenter';
 import { VenueManagement } from '@/routes/dashboard/venues/VenueManagement';
 import { TicketManagement } from '@/routes/dashboard/tickets/TicketManagement';
@@ -65,7 +65,7 @@ export const App: React.FC = () => {
 
       <Routes>
         {/* Public Landing Page */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<CleanLandingPage />} />
 
         {/* Authentication */}
         <Route path="/login" element={<Login />} />
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
             <Route index element={<DashboardHome />} />
             <Route path="events" element={<EventList />} />
             <Route path="events/create" element={<CreateEvent />} />
-            <Route path="events/:id/overview" element={<EventDetail />} />
+            <Route path="events/:id/overview" element={<EventHQ />} />
             <Route path="venues" element={<VenueManagement />} />
             <Route path="tickets" element={<TicketManagement />} />
             <Route path="incidents" element={<IncidentsPage />} />

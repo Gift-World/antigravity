@@ -16,6 +16,10 @@ import {
   CashlessWallet,
   Transaction,
   WaitlistEntry,
+  EventTask,
+  EventSupplier,
+  EventBudgetLine,
+  EventPayment,
 } from '@/types/database';
 
 export interface SupabaseDataset {
@@ -29,6 +33,10 @@ export interface SupabaseDataset {
   alerts: Alert[];
   wallets: Record<string, CashlessWallet>;
   transactions: Transaction[];
+  eventTasks: EventTask[];
+  eventSuppliers: EventSupplier[];
+  eventBudgetLines: EventBudgetLine[];
+  eventPayments: EventPayment[];
 }
 
 export const supabaseService = {
@@ -79,6 +87,10 @@ export const supabaseService = {
         alertsRes,
         walletsRes,
         transactionsRes,
+        eventTasksRes,
+        suppliersRes,
+        budgetLinesRes,
+        paymentsRes,
       ] = await Promise.all([
         supabase.from('organizations').select('*'),
         supabase.from('users').select('*'),
@@ -91,6 +103,10 @@ export const supabaseService = {
         supabase.from('alerts').select('*').order('created_at', { ascending: false }),
         supabase.from('cashless_wallets').select('*'),
         supabase.from('transactions').select('*').order('created_at', { ascending: false }),
+        supabase.from('event_tasks').select('*').order('due_at', { ascending: true }),
+        supabase.from('event_suppliers').select('*').order('created_at', { ascending: false }),
+        supabase.from('event_budget_lines').select('*').order('created_at', { ascending: true }),
+        supabase.from('event_payments').select('*').order('due_at', { ascending: true }),
       ]);
 
       // If key tables errored out, signal failure to trigger offline demo fallback
@@ -144,6 +160,10 @@ export const supabaseService = {
           alerts: (alertsRes.data as Alert[]) || [],
           wallets: walletsMap,
           transactions: (transactionsRes.data as Transaction[]) || [],
+          eventTasks: (eventTasksRes.data as EventTask[]) || [],
+          eventSuppliers: (suppliersRes.data as EventSupplier[]) || [],
+          eventBudgetLines: (budgetLinesRes.data as EventBudgetLine[]) || [],
+          eventPayments: (paymentsRes.data as EventPayment[]) || [],
         },
       };
     } catch (err: any) {
@@ -163,6 +183,27 @@ export const supabaseService = {
       return { success: false, error: err.message };
     }
   },
+
+  async insertEventTask(task: EventTask) {
+    try { await supabase.from('event_tasks').insert([task]); } catch (err) {}
+  },
+
+  async updateEventTask(taskId: string, updates: Partial<EventTask>) {
+    try { await supabase.from('event_tasks').update(updates).eq('id', taskId); } catch (err) {}
+  },
+
+  async insertEventSupplier(supplier: EventSupplier) {
+    try { await supabase.from('event_suppliers').insert([supplier]); } catch (err) {}
+  },
+
+  async updateEventSupplier(supplierId: string, updates: Partial<EventSupplier>) {
+    try { await supabase.from('event_suppliers').update(updates).eq('id', supplierId); } catch (err) {}
+  },
+
+  async insertBudgetLine(line: EventBudgetLine) { try { await supabase.from('event_budget_lines').insert([line]); } catch (err) {} },
+  async updateBudgetLine(lineId: string, updates: Partial<EventBudgetLine>) { try { await supabase.from('event_budget_lines').update(updates).eq('id', lineId); } catch (err) {} },
+  async insertEventPayment(payment: EventPayment) { try { await supabase.from('event_payments').insert([payment]); } catch (err) {} },
+  async updateEventPayment(paymentId: string, updates: Partial<EventPayment>) { try { await supabase.from('event_payments').update(updates).eq('id', paymentId); } catch (err) {} },
 
   async insertAlert(alert: Omit<Alert, 'id' | 'created_at'>) {
     try {
