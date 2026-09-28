@@ -33,7 +33,7 @@ export const DashboardSidebar: React.FC<{ isOpen?: boolean; onClose?: () => void
   ];
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col justify-between border-r border-ag-border bg-ag-surface font-sans shadow-2xl transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 md:shadow-none ${isOpen ? 'translate-x-0' : ''}`}>
+    <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-ag-border bg-ag-surface font-sans shadow-2xl transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 md:shadow-none ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Top Navigation Links */}
       <div className="p-3 space-y-4">
         <div className="flex items-center justify-between px-1 md:hidden"><p className="text-xs font-bold uppercase tracking-[.16em] text-ag-text-muted">Navigation</p><button onClick={onClose} className="rounded-lg p-2 text-ag-text-secondary hover:bg-ag-surface-hover hover:text-white" aria-label="Close navigation"><X className="h-4 w-4" /></button></div>
