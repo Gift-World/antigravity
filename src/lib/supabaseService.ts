@@ -22,6 +22,7 @@ import {
   EventPayment,
   EventMembership,
   AccessAuditLog,
+  EventAccessInvite,
 } from '@/types/database';
 
 export interface SupabaseDataset {
@@ -41,6 +42,7 @@ export interface SupabaseDataset {
   eventPayments: EventPayment[];
   eventMemberships: EventMembership[];
   accessAuditLogs: AccessAuditLog[];
+  eventAccessInvites: EventAccessInvite[];
 }
 
 export const supabaseService = {
@@ -97,6 +99,7 @@ export const supabaseService = {
         paymentsRes,
         membershipsRes,
         accessAuditRes,
+        accessInvitesRes,
       ] = await Promise.all([
         supabase.from('organizations').select('*'),
         supabase.from('users').select('*'),
@@ -115,6 +118,7 @@ export const supabaseService = {
         supabase.from('event_payments').select('*').order('due_at', { ascending: true }),
         supabase.from('event_memberships').select('*').order('created_at', { ascending: false }),
         supabase.from('access_audit_logs').select('*').order('created_at', { ascending: false }).limit(40),
+        supabase.from('event_access_invites').select('*').order('created_at', { ascending: false }),
       ]);
 
       // If key tables errored out, signal failure to trigger offline demo fallback
@@ -174,6 +178,7 @@ export const supabaseService = {
           eventPayments: (paymentsRes.data as EventPayment[]) || [],
           eventMemberships: (membershipsRes.data as EventMembership[]) || [],
           accessAuditLogs: (accessAuditRes.data as AccessAuditLog[]) || [],
+          eventAccessInvites: (accessInvitesRes.data as EventAccessInvite[]) || [],
         },
       };
     } catch (err: any) {
@@ -216,6 +221,7 @@ export const supabaseService = {
   async updateEventPayment(paymentId: string, updates: Partial<EventPayment>) { try { await supabase.from('event_payments').update(updates).eq('id', paymentId); } catch (err) {} },
   async insertEventMembership(membership: EventMembership) { try { await supabase.from('event_memberships').upsert([membership], { onConflict: 'event_id,user_id' }); } catch (err) {} },
   async insertAccessAuditLog(log: AccessAuditLog) { try { await supabase.from('access_audit_logs').insert([log]); } catch (err) {} },
+  async insertEventAccessInvite(invite: EventAccessInvite) { try { await supabase.from('event_access_invites').insert([invite]); } catch (err) {} },
 
   async insertAlert(alert: Omit<Alert, 'id' | 'created_at'>) {
     try {

@@ -274,6 +274,19 @@ export interface AccessAuditLog {
   created_at: string;
 }
 
+export interface EventAccessInvite {
+  id: string;
+  event_id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  workspace: EventWorkspace;
+  scope_label?: string | null;
+  status: 'invited' | 'revoked' | 'accepted';
+  invited_by?: string | null;
+  created_at: string;
+}
+
 export interface Ticket {
   id: string;
   event_id: string;

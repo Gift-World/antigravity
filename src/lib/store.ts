@@ -23,6 +23,7 @@ import {
   EventPayment,
   EventMembership,
   AccessAuditLog,
+  EventAccessInvite,
   UserRole,
   IncidentStatus,
   AlertSeverity,
@@ -60,6 +61,7 @@ interface AppState {
   eventPayments: EventPayment[];
   eventMemberships: EventMembership[];
   accessAuditLogs: AccessAuditLog[];
+  eventAccessInvites: EventAccessInvite[];
 
   // App UI State
   activeEventId: string;
@@ -114,6 +116,7 @@ interface AppState {
   updateEventPayment: (paymentId: string, updates: Partial<Pick<EventPayment, 'status' | 'paid_at'>>) => void;
   assignEventWorkspace: (membership: Omit<EventMembership, 'id' | 'created_at' | 'updated_at'>) => EventMembership;
   recordAccessAudit: (log: Omit<AccessAuditLog, 'id' | 'created_at'>) => AccessAuditLog;
+  createEventAccessInvite: (invite: Omit<EventAccessInvite, 'id' | 'created_at'>) => EventAccessInvite;
 
   // Ticket & M-Pesa Actions
   purchaseTicket: (params: {
@@ -180,6 +183,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   eventPayments: [],
   eventMemberships: [],
   accessAuditLogs: [],
+  eventAccessInvites: [],
 
   activeEventId: '',
   isSimulationActive: false,
@@ -314,6 +318,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventPayments: d.eventPayments,
           eventMemberships: d.eventMemberships,
           accessAuditLogs: d.accessAuditLogs,
+          eventAccessInvites: d.eventAccessInvites,
           scansPerMinuteByGate: {
             'c1111111-1111-1111-1111-111111111111': { in: 48, out: 4 },
             'c2222222-2222-2222-2222-222222222222': { in: 62, out: 7 },
@@ -380,6 +385,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventPayments: [],
           eventMemberships: [],
           accessAuditLogs: [],
+          eventAccessInvites: [],
         });
       }
     } catch (err) {
@@ -403,6 +409,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         eventPayments: [],
         eventMemberships: [],
         accessAuditLogs: [],
+        eventAccessInvites: [],
       });
     }
   },
@@ -750,6 +757,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (get().isSupabaseConnected) supabaseService.insertAccessAuditLog(log);
     set((state) => ({ accessAuditLogs: [log, ...state.accessAuditLogs].slice(0, 40) }));
     return log;
+  },
+
+  createEventAccessInvite: (inviteData) => {
+    const invite: EventAccessInvite = { ...inviteData, id: `invite_${Date.now()}`, created_at: new Date().toISOString() };
+    if (get().isSupabaseConnected) supabaseService.insertEventAccessInvite(invite);
+    set((state) => ({ eventAccessInvites: [invite, ...state.eventAccessInvites] }));
+    return invite;
   },
 
   createEventTask: (taskData) => {
