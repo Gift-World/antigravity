@@ -287,6 +287,62 @@ export interface EventAccessInvite {
   created_at: string;
 }
 
+export type ReadinessCheckStatus = 'not_started' | 'pending' | 'ready' | 'blocked';
+export type CommandDecisionStatus = 'draft' | 'issued' | 'acknowledged' | 'completed';
+export type CommandDecisionPriority = 'routine' | 'important' | 'critical';
+export type EventIntegrationKind = 'ticketing' | 'gate_scanning' | 'payments' | 'messaging';
+export type EventIntegrationStatus = 'not_connected' | 'connected' | 'attention';
+
+/** A launch-critical, evidence-backed condition. An event may only be cleared
+ * when its owner can see every blocking condition and its accountable owner. */
+export interface EventReadinessCheck {
+  id: string;
+  event_id: string;
+  area: string;
+  title: string;
+  owner_name: string;
+  status: ReadinessCheckStatus;
+  evidence_note?: string | null;
+  due_at?: string | null;
+  acknowledged_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A time-stamped command issued from event control, separate from an alert.
+ * This gives an owner an auditable answer to: who decided what, and who acted? */
+export interface EventCommandDecision {
+  id: string;
+  event_id: string;
+  title: string;
+  directive: string;
+  owner_name: string;
+  audience: string;
+  priority: CommandDecisionPriority;
+  status: CommandDecisionStatus;
+  issued_by?: string | null;
+  acknowledged_at?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A live source feeding Event HQ. Provider data is deliberately labelled so
+ * an organiser knows whether a number is connected or manually reconciled. */
+export interface EventIntegration {
+  id: string;
+  event_id: string;
+  provider: string;
+  kind: EventIntegrationKind;
+  status: EventIntegrationStatus;
+  last_synced_at?: string | null;
+  metric_label?: string | null;
+  metric_value?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Ticket {
   id: string;
   event_id: string;

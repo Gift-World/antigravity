@@ -7,6 +7,9 @@ import { Card } from '@/components/ui/Card';
 import { OperationsPlan } from '@/components/events/OperationsPlan';
 import { FinancialControl } from '@/components/events/FinancialControl';
 import { EventDayBoard } from '@/components/events/EventDayBoard';
+import { GoNoGoBoard } from '@/components/events/GoNoGoBoard';
+import { CommandDecisionBoard } from '@/components/events/CommandDecisionBoard';
+import { IntegrationHub } from '@/components/events/IntegrationHub';
 import { formatCurrencyKES, formatNumber } from '@/lib/utils';
 import {
   Activity,
@@ -29,7 +32,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 
-type WorkspaceTab = 'overview' | 'readiness' | 'run-sheet' | 'event-day' | 'tickets' | 'money';
+type WorkspaceTab = 'overview' | 'go-no-go' | 'readiness' | 'run-sheet' | 'event-day' | 'command-log' | 'tickets' | 'money' | 'integrations';
 type ReadinessState = 'done' | 'pending' | 'blocked';
 type ReadinessItem = { id: string; area: string; task: string; owner: string; state: ReadinessState };
 
@@ -58,7 +61,7 @@ const runSheet = [
 export const EventHQ: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { events, tickets, incidents, activeEventId, setActiveEventId } = useAppStore();
+  const { events, tickets, incidents, activeEventId, setActiveEventId, readinessChecks, commandDecisions, eventIntegrations } = useAppStore();
   const [tab, setTab] = useState<WorkspaceTab>('overview');
   const [readiness, setReadiness] = useState(() => readinessSeed.map((item) => ({ ...item })));
   const event = events.find((item) => item.id === (id || activeEventId)) || events[0];
@@ -76,6 +79,10 @@ export const EventHQ: React.FC = () => {
   const readinessScore = Math.round((readinessComplete / readiness.length) * 100);
   const openWork = readiness.filter((item) => item.state !== 'done');
   const isLive = event.status === 'live';
+  const persistedChecks = readinessChecks.filter((check) => check.event_id === event.id);
+  const persistedBlockers = persistedChecks.filter((check) => check.status === 'blocked').length;
+  const issuedDecisions = commandDecisions.filter((decision) => decision.event_id === event.id && decision.status === 'issued').length;
+  const unhealthySources = eventIntegrations.filter((integration) => integration.event_id === event.id && integration.status !== 'connected').length;
 
   const openLive = () => {
     setActiveEventId(event.id);
@@ -84,11 +91,14 @@ export const EventHQ: React.FC = () => {
 
   const tabs: { id: WorkspaceTab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: 'Overview', icon: ClipboardCheck },
+    { id: 'go-no-go', label: 'Go / no-go', icon: ShieldCheck },
     { id: 'readiness', label: 'Readiness', icon: ShieldCheck },
     { id: 'run-sheet', label: 'Run sheet', icon: Clock3 },
     { id: 'event-day', label: 'Event day', icon: Radio },
+    { id: 'command-log', label: 'Command log', icon: Activity },
     { id: 'tickets', label: 'Tickets & gates', icon: Ticket },
     { id: 'money', label: 'Money & report', icon: WalletCards },
+    { id: 'integrations', label: 'Sources', icon: ReceiptText },
   ];
 
   return (
@@ -113,10 +123,10 @@ export const EventHQ: React.FC = () => {
 
       {tab === 'overview' && <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric label="Readiness" value={`${readinessScore}%`} detail={`${openWork.length} items need an owner`} tone={readinessScore >= 75 ? 'green' : 'yellow'} />
+          <Metric label="Readiness" value={persistedChecks.length ? `${persistedChecks.filter((check) => check.status === 'ready').length} / ${persistedChecks.length}` : `${readinessScore}%`} detail={persistedChecks.length ? (persistedBlockers ? `${persistedBlockers} gate blockers` : 'launch conditions tracked') : `${openWork.length} items need an owner`} tone={persistedBlockers ? 'yellow' : readinessScore >= 75 ? 'green' : 'yellow'} />
           <Metric label="Ticket revenue" value={formatCurrencyKES(totalRevenue)} detail={`${formatNumber(ticketsSold)} paid tickets`} tone="purple" />
-          <Metric label="Guests inside" value={`${formatNumber(event.current_attendance)} / ${formatNumber(event.max_capacity)}`} detail={`${Math.round((event.current_attendance / event.max_capacity) * 100)}% current capacity`} tone="blue" />
-          <Metric label="Open incidents" value={String(eventIncidents.filter((item) => item.status !== 'resolved').length)} detail={isLive ? 'Live team is monitoring' : 'No live operation yet'} tone={eventIncidents.some((item) => item.status !== 'resolved') ? 'yellow' : 'green'} />
+          <Metric label="Live decisions" value={String(issuedDecisions)} detail={issuedDecisions ? 'awaiting acknowledgement' : 'command log is clear'} tone={issuedDecisions ? 'yellow' : 'green'} />
+          <Metric label="Sources needing care" value={String(unhealthySources)} detail={unhealthySources ? 'check ticketing, payments or comms' : 'all connected sources healthy'} tone={unhealthySources ? 'yellow' : 'green'} />
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
@@ -127,13 +137,19 @@ export const EventHQ: React.FC = () => {
 
       {tab === 'readiness' && <OperationsPlan eventId={event.id} />}
 
+      {tab === 'go-no-go' && <GoNoGoBoard eventId={event.id} />}
+
       {tab === 'run-sheet' && <Card className="overflow-hidden p-0"><div className="border-b border-ag-border p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-wider text-ag-text-muted">One source of timing</p><h2 className="mt-1 text-xl font-bold text-white">Concert run sheet</h2><p className="mt-1 text-sm text-ag-text-secondary">The people, place and decision for every important moment.</p></div><div className="divide-y divide-ag-border">{runSheet.map(([time, action, owner, place], index) => <div key={time} className="flex gap-4 p-4 sm:px-6"><div className="w-12 pt-0.5 font-mono text-sm font-bold text-ag-blue">{time}</div><div className="relative flex-1 border-l border-ag-border pl-5 pb-3 last:pb-0"><span className={`absolute -left-[5px] top-1 h-2 w-2 rounded-full ${index === 4 ? 'bg-ag-green ring-4 ring-ag-green-dim' : 'bg-ag-border'}`} /><p className="text-sm font-bold text-white">{action}</p><p className="mt-1 text-xs text-ag-text-secondary">{owner} · {place}</p></div></div>)}</div></Card>}
 
       {tab === 'event-day' && <EventDayBoard eventId={event.id} onOpenLive={openLive} />}
 
+      {tab === 'command-log' && <CommandDecisionBoard eventId={event.id} />}
+
       {tab === 'tickets' && <div className="space-y-5"><div className="grid gap-4 sm:grid-cols-3"><Metric label="Tickets sold" value={formatNumber(ticketsSold)} detail={`of ${formatNumber(event.ticket_tiers.reduce((sum, tier) => sum + tier.quantity, 0))} available`} tone="green" /><Metric label="Checked in" value={formatNumber(eventTickets.filter((item) => item.status === 'scanned').length)} detail="verified at a gate" tone="blue" /><Metric label="Gate readiness" value="3 / 4" detail="one gate team still unconfirmed" tone="yellow" /></div><Card className="p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-ag-text-muted">Gate operations</p><h2 className="mt-1 text-lg font-bold text-white">Keep arrival flow even</h2></div><Button variant="outline" size="sm" onClick={openLive} rightIcon={<ArrowRight className="h-3.5 w-3.5" />}>Open live view</Button></div><div className="mt-5 grid gap-3 md:grid-cols-3">{event.ticket_tiers.map((tier) => <div key={tier.name} className="rounded-xl border border-ag-border bg-ag-black/30 p-4"><div className="flex items-center justify-between"><p className="text-sm font-bold text-white">{tier.name}</p><p className="text-xs font-mono text-ag-green">{formatCurrencyKES(tier.price)}</p></div><p className="mt-3 text-xs text-ag-text-secondary">{formatNumber(tier.sold)} sold of {formatNumber(tier.quantity)}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ag-surface"><div className="h-full rounded-full bg-ag-blue" style={{ width: `${Math.min(100, (tier.sold / tier.quantity) * 100)}%` }} /></div></div>)}</div></Card></div>}
 
       {tab === 'money' && <FinancialControl eventId={event.id} ticketRevenue={totalRevenue} />}
+
+      {tab === 'integrations' && <IntegrationHub eventId={event.id} />}
     </div>
   );
 };

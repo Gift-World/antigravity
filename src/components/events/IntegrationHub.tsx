@@ -1,0 +1,25 @@
+import React, { useMemo } from 'react';
+import { BadgeCheck, Cable, CircleAlert, CreditCard, RadioTower, RefreshCw, ScanLine } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { useAppStore } from '@/lib/store';
+import { EventIntegration, EventIntegrationKind } from '@/types/database';
+
+const recommended: Omit<EventIntegration, 'id' | 'created_at' | 'updated_at'>[] = [
+  { event_id: '', provider: 'Antigravity Tickets', kind: 'ticketing', status: 'connected', last_synced_at: null, metric_label: 'Tickets sold', metric_value: 'Live from checkout', notes: 'Native ticket ledger and attendee wallet' },
+  { event_id: '', provider: 'Antigravity Gate Scanner', kind: 'gate_scanning', status: 'connected', last_synced_at: null, metric_label: 'Gate scans', metric_value: 'Live from scanners', notes: 'Entry and exit scans feed capacity and crowd flow' },
+  { event_id: '', provider: 'M-Pesa', kind: 'payments', status: 'attention', last_synced_at: null, metric_label: 'Settlement', metric_value: 'Reconcile before close', notes: 'Payment callback health needs confirmation' },
+  { event_id: '', provider: 'Guest messaging', kind: 'messaging', status: 'not_connected', last_synced_at: null, metric_label: 'Arrival comms', metric_value: 'Not connected', notes: 'Connect SMS or WhatsApp delivery source' },
+];
+
+const icons: Record<EventIntegrationKind, React.ElementType> = { ticketing: Cable, gate_scanning: ScanLine, payments: CreditCard, messaging: RadioTower };
+const statusMeta = { connected: { label: 'Connected', className: 'text-ag-green bg-ag-green-dim border-ag-green/30' }, attention: { label: 'Needs attention', className: 'text-ag-yellow bg-ag-yellow-dim border-ag-yellow/30' }, not_connected: { label: 'Not connected', className: 'text-ag-text-muted bg-ag-surface border-ag-border' } };
+
+export const IntegrationHub: React.FC<{ eventId: string }> = ({ eventId }) => {
+  const { eventIntegrations, createEventIntegration, updateEventIntegration } = useAppStore();
+  const integrations = useMemo(() => eventIntegrations.filter((integration) => integration.event_id === eventId), [eventIntegrations, eventId]);
+  const installSources = () => recommended.forEach((integration) => createEventIntegration({ ...integration, event_id: eventId }));
+  const sync = (integration: EventIntegration) => updateEventIntegration(integration.id, { status: integration.kind === 'messaging' ? 'attention' : 'connected', last_synced_at: new Date().toISOString(), metric_value: integration.kind === 'payments' ? 'Reconciliation refreshed' : 'Synced just now' });
+
+  return <div className="space-y-5"><Card className="border-ag-purple/25 bg-gradient-to-br from-ag-purple-dim/20 via-ag-surface to-ag-black p-5 sm:p-6"><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ag-purple"><Cable className="h-4 w-4" />Source of truth</div><h2 className="mt-2 text-xl font-bold text-white">Numbers you can trust on event day.</h2><p className="mt-1 max-w-2xl text-sm text-ag-text-secondary">Connect sales, scans, payments and guest messages to one event timeline. Antigravity shows when a source is stale instead of hiding it.</p></div>{integrations.length === 0 && <Button size="sm" variant="primary" onClick={installSources} leftIcon={<BadgeCheck className="h-3.5 w-3.5" />}>Set up core sources</Button>}</div></Card>{integrations.length > 0 && <div className="grid gap-4 md:grid-cols-2">{integrations.map((integration) => { const Icon = icons[integration.kind]; const status = statusMeta[integration.status]; return <Card key={integration.id} className="p-5"><div className="flex items-start justify-between gap-3"><div className="flex gap-3"><div className="rounded-xl bg-ag-blue-dim p-2.5 text-ag-blue"><Icon className="h-5 w-5" /></div><div><p className="text-sm font-bold text-white">{integration.provider}</p><p className="mt-0.5 text-xs capitalize text-ag-text-secondary">{integration.kind.replace('_', ' ')}</p></div></div><span className={`rounded-full border px-2 py-1 text-[10px] font-bold ${status.className}`}>{status.label}</span></div><div className="mt-5 rounded-xl border border-ag-border bg-ag-black/30 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-ag-text-muted">{integration.metric_label}</p><p className="mt-1 text-sm font-bold text-white">{integration.metric_value}</p><p className="mt-2 text-xs leading-relaxed text-ag-text-secondary">{integration.notes}</p></div><div className="mt-4 flex items-center justify-between"><p className="text-[11px] text-ag-text-muted">{integration.last_synced_at ? `Last checked ${new Date(integration.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Not checked yet'}</p><button onClick={() => sync(integration)} className="flex items-center gap-1 text-[11px] font-bold text-ag-blue hover:text-white"><RefreshCw className="h-3.5 w-3.5" />Check source</button></div></Card>; })}</div>}</div>;
+};

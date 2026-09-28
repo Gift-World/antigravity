@@ -27,6 +27,9 @@ import {
   UserRole,
   IncidentStatus,
   AlertSeverity,
+  EventReadinessCheck,
+  EventCommandDecision,
+  EventIntegration,
 } from '@/types/database';
 import { soundManager } from '@/lib/audio';
 import { createTicketQRPayload, getDeviceFingerprint } from '@/lib/qr';
@@ -62,6 +65,9 @@ interface AppState {
   eventMemberships: EventMembership[];
   accessAuditLogs: AccessAuditLog[];
   eventAccessInvites: EventAccessInvite[];
+  readinessChecks: EventReadinessCheck[];
+  commandDecisions: EventCommandDecision[];
+  eventIntegrations: EventIntegration[];
 
   // App UI State
   activeEventId: string;
@@ -117,6 +123,12 @@ interface AppState {
   assignEventWorkspace: (membership: Omit<EventMembership, 'id' | 'created_at' | 'updated_at'>) => EventMembership;
   recordAccessAudit: (log: Omit<AccessAuditLog, 'id' | 'created_at'>) => AccessAuditLog;
   createEventAccessInvite: (invite: Omit<EventAccessInvite, 'id' | 'created_at'>) => EventAccessInvite;
+  createReadinessCheck: (check: Omit<EventReadinessCheck, 'id' | 'created_at' | 'updated_at'>) => EventReadinessCheck;
+  updateReadinessCheck: (checkId: string, updates: Partial<Pick<EventReadinessCheck, 'status' | 'evidence_note' | 'acknowledged_at'>>) => void;
+  createCommandDecision: (decision: Omit<EventCommandDecision, 'id' | 'created_at' | 'updated_at'>) => EventCommandDecision;
+  updateCommandDecision: (decisionId: string, updates: Partial<Pick<EventCommandDecision, 'status' | 'acknowledged_at' | 'completed_at'>>) => void;
+  createEventIntegration: (integration: Omit<EventIntegration, 'id' | 'created_at' | 'updated_at'>) => EventIntegration;
+  updateEventIntegration: (integrationId: string, updates: Partial<Pick<EventIntegration, 'status' | 'last_synced_at' | 'metric_label' | 'metric_value' | 'notes'>>) => void;
 
   // Ticket & M-Pesa Actions
   purchaseTicket: (params: {
@@ -184,6 +196,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   eventMemberships: [],
   accessAuditLogs: [],
   eventAccessInvites: [],
+  readinessChecks: [],
+  commandDecisions: [],
+  eventIntegrations: [],
 
   activeEventId: '',
   isSimulationActive: false,
@@ -319,6 +334,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventMemberships: d.eventMemberships,
           accessAuditLogs: d.accessAuditLogs,
           eventAccessInvites: d.eventAccessInvites,
+          readinessChecks: d.readinessChecks,
+          commandDecisions: d.commandDecisions,
+          eventIntegrations: d.eventIntegrations,
           scansPerMinuteByGate: {
             'c1111111-1111-1111-1111-111111111111': { in: 48, out: 4 },
             'c2222222-2222-2222-2222-222222222222': { in: 62, out: 7 },
@@ -386,6 +404,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventMemberships: [],
           accessAuditLogs: [],
           eventAccessInvites: [],
+          readinessChecks: [],
+          commandDecisions: [],
+          eventIntegrations: [],
         });
       }
     } catch (err) {
@@ -410,6 +431,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         eventMemberships: [],
         accessAuditLogs: [],
         eventAccessInvites: [],
+        readinessChecks: [],
+        commandDecisions: [],
+        eventIntegrations: [],
       });
     }
   },
@@ -764,6 +788,48 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (get().isSupabaseConnected) supabaseService.insertEventAccessInvite(invite);
     set((state) => ({ eventAccessInvites: [invite, ...state.eventAccessInvites] }));
     return invite;
+  },
+
+  createReadinessCheck: (checkData) => {
+    const now = new Date().toISOString();
+    const check: EventReadinessCheck = { ...checkData, id: `readiness_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertReadinessCheck(check);
+    set((state) => ({ readinessChecks: [...state.readinessChecks, check] }));
+    return check;
+  },
+
+  updateReadinessCheck: (checkId, updates) => {
+    const update = { ...updates, updated_at: new Date().toISOString() };
+    if (get().isSupabaseConnected) supabaseService.updateReadinessCheck(checkId, update);
+    set((state) => ({ readinessChecks: state.readinessChecks.map((check) => check.id === checkId ? { ...check, ...update } : check) }));
+  },
+
+  createCommandDecision: (decisionData) => {
+    const now = new Date().toISOString();
+    const decision: EventCommandDecision = { ...decisionData, id: `decision_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertCommandDecision(decision);
+    set((state) => ({ commandDecisions: [decision, ...state.commandDecisions] }));
+    return decision;
+  },
+
+  updateCommandDecision: (decisionId, updates) => {
+    const update = { ...updates, updated_at: new Date().toISOString() };
+    if (get().isSupabaseConnected) supabaseService.updateCommandDecision(decisionId, update);
+    set((state) => ({ commandDecisions: state.commandDecisions.map((decision) => decision.id === decisionId ? { ...decision, ...update } : decision) }));
+  },
+
+  createEventIntegration: (integrationData) => {
+    const now = new Date().toISOString();
+    const integration: EventIntegration = { ...integrationData, id: `integration_${Date.now()}`, created_at: now, updated_at: now };
+    if (get().isSupabaseConnected) supabaseService.insertEventIntegration(integration);
+    set((state) => ({ eventIntegrations: [...state.eventIntegrations, integration] }));
+    return integration;
+  },
+
+  updateEventIntegration: (integrationId, updates) => {
+    const update = { ...updates, updated_at: new Date().toISOString() };
+    if (get().isSupabaseConnected) supabaseService.updateEventIntegration(integrationId, update);
+    set((state) => ({ eventIntegrations: state.eventIntegrations.map((integration) => integration.id === integrationId ? { ...integration, ...update } : integration) }));
   },
 
   createEventTask: (taskData) => {
