@@ -21,6 +21,8 @@ import {
   EventSupplier,
   EventBudgetLine,
   EventPayment,
+  EventMembership,
+  AccessAuditLog,
   UserRole,
   IncidentStatus,
   AlertSeverity,
@@ -56,6 +58,8 @@ interface AppState {
   eventSuppliers: EventSupplier[];
   eventBudgetLines: EventBudgetLine[];
   eventPayments: EventPayment[];
+  eventMemberships: EventMembership[];
+  accessAuditLogs: AccessAuditLog[];
 
   // App UI State
   activeEventId: string;
@@ -108,6 +112,8 @@ interface AppState {
   updateBudgetLine: (lineId: string, updates: Partial<Pick<EventBudgetLine, 'planned_amount' | 'committed_amount' | 'paid_amount' | 'status'>>) => void;
   createEventPayment: (payment: Omit<EventPayment, 'id' | 'created_at' | 'updated_at'>) => EventPayment;
   updateEventPayment: (paymentId: string, updates: Partial<Pick<EventPayment, 'status' | 'paid_at'>>) => void;
+  assignEventWorkspace: (membership: Omit<EventMembership, 'id' | 'created_at' | 'updated_at'>) => EventMembership;
+  recordAccessAudit: (log: Omit<AccessAuditLog, 'id' | 'created_at'>) => AccessAuditLog;
 
   // Ticket & M-Pesa Actions
   purchaseTicket: (params: {
@@ -172,6 +178,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   eventSuppliers: [],
   eventBudgetLines: [],
   eventPayments: [],
+  eventMemberships: [],
+  accessAuditLogs: [],
 
   activeEventId: '',
   isSimulationActive: false,
@@ -304,6 +312,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventSuppliers: d.eventSuppliers,
           eventBudgetLines: d.eventBudgetLines,
           eventPayments: d.eventPayments,
+          eventMemberships: d.eventMemberships,
+          accessAuditLogs: d.accessAuditLogs,
           scansPerMinuteByGate: {
             'c1111111-1111-1111-1111-111111111111': { in: 48, out: 4 },
             'c2222222-2222-2222-2222-222222222222': { in: 62, out: 7 },
@@ -368,6 +378,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           eventSuppliers: [],
           eventBudgetLines: [],
           eventPayments: [],
+          eventMemberships: [],
+          accessAuditLogs: [],
         });
       }
     } catch (err) {
@@ -389,6 +401,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         eventSuppliers: [],
         eventBudgetLines: [],
         eventPayments: [],
+        eventMemberships: [],
+        accessAuditLogs: [],
       });
     }
   },
@@ -712,6 +726,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return newUser;
+  },
+
+  assignEventWorkspace: (membershipData) => {
+    const now = new Date().toISOString();
+    const membership: EventMembership = {
+      ...membershipData,
+      id: `member_${Date.now()}_${membershipData.user_id.slice(0, 6)}`,
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (get().isSupabaseConnected) supabaseService.insertEventMembership(membership);
+
+    set((state) => ({
+      eventMemberships: [membership, ...state.eventMemberships.filter((item) => !(item.event_id === membership.event_id && item.user_id === membership.user_id))],
+    }));
+    return membership;
+  },
+
+  recordAccessAudit: (logData) => {
+    const log: AccessAuditLog = { ...logData, id: `audit_${Date.now()}`, created_at: new Date().toISOString() };
+    if (get().isSupabaseConnected) supabaseService.insertAccessAuditLog(log);
+    set((state) => ({ accessAuditLogs: [log, ...state.accessAuditLogs].slice(0, 40) }));
+    return log;
   },
 
   createEventTask: (taskData) => {

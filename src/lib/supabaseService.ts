@@ -20,6 +20,8 @@ import {
   EventSupplier,
   EventBudgetLine,
   EventPayment,
+  EventMembership,
+  AccessAuditLog,
 } from '@/types/database';
 
 export interface SupabaseDataset {
@@ -37,6 +39,8 @@ export interface SupabaseDataset {
   eventSuppliers: EventSupplier[];
   eventBudgetLines: EventBudgetLine[];
   eventPayments: EventPayment[];
+  eventMemberships: EventMembership[];
+  accessAuditLogs: AccessAuditLog[];
 }
 
 export const supabaseService = {
@@ -91,6 +95,8 @@ export const supabaseService = {
         suppliersRes,
         budgetLinesRes,
         paymentsRes,
+        membershipsRes,
+        accessAuditRes,
       ] = await Promise.all([
         supabase.from('organizations').select('*'),
         supabase.from('users').select('*'),
@@ -107,6 +113,8 @@ export const supabaseService = {
         supabase.from('event_suppliers').select('*').order('created_at', { ascending: false }),
         supabase.from('event_budget_lines').select('*').order('created_at', { ascending: true }),
         supabase.from('event_payments').select('*').order('due_at', { ascending: true }),
+        supabase.from('event_memberships').select('*').order('created_at', { ascending: false }),
+        supabase.from('access_audit_logs').select('*').order('created_at', { ascending: false }).limit(40),
       ]);
 
       // If key tables errored out, signal failure to trigger offline demo fallback
@@ -164,6 +172,8 @@ export const supabaseService = {
           eventSuppliers: (suppliersRes.data as EventSupplier[]) || [],
           eventBudgetLines: (budgetLinesRes.data as EventBudgetLine[]) || [],
           eventPayments: (paymentsRes.data as EventPayment[]) || [],
+          eventMemberships: (membershipsRes.data as EventMembership[]) || [],
+          accessAuditLogs: (accessAuditRes.data as AccessAuditLog[]) || [],
         },
       };
     } catch (err: any) {
@@ -204,6 +214,8 @@ export const supabaseService = {
   async updateBudgetLine(lineId: string, updates: Partial<EventBudgetLine>) { try { await supabase.from('event_budget_lines').update(updates).eq('id', lineId); } catch (err) {} },
   async insertEventPayment(payment: EventPayment) { try { await supabase.from('event_payments').insert([payment]); } catch (err) {} },
   async updateEventPayment(paymentId: string, updates: Partial<EventPayment>) { try { await supabase.from('event_payments').update(updates).eq('id', paymentId); } catch (err) {} },
+  async insertEventMembership(membership: EventMembership) { try { await supabase.from('event_memberships').upsert([membership], { onConflict: 'event_id,user_id' }); } catch (err) {} },
+  async insertAccessAuditLog(log: AccessAuditLog) { try { await supabase.from('access_audit_logs').insert([log]); } catch (err) {} },
 
   async insertAlert(alert: Omit<Alert, 'id' | 'created_at'>) {
     try {

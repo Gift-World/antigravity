@@ -236,6 +236,44 @@ export interface EventPayment {
   updated_at: string;
 }
 
+/** A person's scoped workspace inside one event. This is deliberately separate
+ * from their organisation-level user role: a production lead can work on one
+ * concert without receiving access to every event in the organisation. */
+export type EventWorkspace =
+  | 'owner'
+  | 'event_control'
+  | 'finance'
+  | 'production'
+  | 'safety'
+  | 'gate_ops'
+  | 'supplier'
+  | 'guest_experience';
+
+export type EventMembershipStatus = 'active' | 'invited' | 'suspended';
+
+export interface EventMembership {
+  id: string;
+  event_id: string;
+  user_id: string;
+  workspace: EventWorkspace;
+  status: EventMembershipStatus;
+  scope_label?: string | null;
+  invited_by?: string | null;
+  last_active_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AccessAuditLog {
+  id: string;
+  event_id?: string | null;
+  actor_id?: string | null;
+  action: string;
+  target_name?: string | null;
+  detail?: string | null;
+  created_at: string;
+}
+
 export interface Ticket {
   id: string;
   event_id: string;
