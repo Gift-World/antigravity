@@ -18,7 +18,7 @@ export const DashboardLayout: React.FC = () => {
     <div className="min-h-screen bg-ag-black flex text-ag-text-primary">
       {/* Sidebar Navigation */}
       <DashboardSidebar isOpen={isMobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      {isMobileNavOpen && <button aria-label="Close navigation" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-40 bg-ag-black/75 backdrop-blur-sm md:hidden" />}
+      {isMobileNavOpen && <button aria-label="Dismiss navigation backdrop" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-40 bg-ag-black/75 backdrop-blur-sm md:hidden" />}
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0">
