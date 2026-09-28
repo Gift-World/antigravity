@@ -10,9 +10,10 @@ import {
   Settings,
   Activity,
   ArrowUpRight,
+  X,
 } from 'lucide-react';
 
-export const DashboardSidebar: React.FC = () => {
+export const DashboardSidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({ isOpen = false, onClose }) => {
   const { activeEventId, events, currentUser } = useAppStore();
   const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
@@ -32,13 +33,15 @@ export const DashboardSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-60 bg-ag-surface border-r border-ag-border flex flex-col justify-between select-none shrink-0 font-sans">
+    <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col justify-between border-r border-ag-border bg-ag-surface font-sans shadow-2xl transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 md:shadow-none ${isOpen ? 'translate-x-0' : ''}`}>
       {/* Top Navigation Links */}
       <div className="p-3 space-y-4">
+        <div className="flex items-center justify-between px-1 md:hidden"><p className="text-xs font-bold uppercase tracking-[.16em] text-ag-text-muted">Navigation</p><button onClick={onClose} className="rounded-lg p-2 text-ag-text-secondary hover:bg-ag-surface-hover hover:text-white" aria-label="Close navigation"><X className="h-4 w-4" /></button></div>
         {/* Live View Quick Card */}
         {activeEvent && (
           <NavLink
             to={`/dashboard/events/${activeEvent.id}/live`}
+            onClick={onClose}
             className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-ag-green-dim/30 to-ag-surface border border-ag-green/40 text-white hover:border-ag-green transition-all shadow-md group"
           >
             <div className="flex items-center gap-2.5">
@@ -63,6 +66,7 @@ export const DashboardSidebar: React.FC = () => {
               key={link.to}
               to={link.to}
               end={link.end}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive

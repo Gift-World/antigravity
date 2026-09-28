@@ -13,10 +13,11 @@ import {
   Activity,
   QrCode,
   Smartphone,
+  Menu,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export const TopBar: React.FC = () => {
+export const TopBar: React.FC<{ onOpenNavigation?: () => void }> = ({ onOpenNavigation }) => {
   const navigate = useNavigate();
   const {
     currentUser,
@@ -57,9 +58,10 @@ export const TopBar: React.FC = () => {
   };
 
   return (
-    <header className="h-16 bg-ag-surface border-b border-ag-border px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none font-sans">
+    <header className="h-16 bg-ag-surface border-b border-ag-border px-3 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none font-sans">
       {/* Brand / Logo */}
       <div className="flex items-center gap-4">
+        <button onClick={onOpenNavigation} className="rounded-lg border border-ag-border bg-ag-black/50 p-2 text-ag-text-secondary hover:text-white md:hidden" aria-label="Open navigation"><Menu className="h-4 w-4" /></button>
         <Link to="/" className="flex items-center gap-2">
           <AntigravityLogo size="sm" />
         </Link>
@@ -95,7 +97,7 @@ export const TopBar: React.FC = () => {
       </div>
 
       {/* Right Controls: Audio & Profile */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Audio Mute Toggle */}
         <button
           onClick={toggleAudioMute}
@@ -106,7 +108,7 @@ export const TopBar: React.FC = () => {
         </button>
 
         {/* Role Selector Pill */}
-        <div className="flex items-center gap-2 pl-3 border-l border-ag-border">
+        <div className="flex items-center gap-2 border-l border-ag-border pl-2 sm:pl-3">
           <div className="w-8 h-8 rounded-full overflow-hidden border border-ag-border bg-ag-black shrink-0 hidden sm:block">
             <img
               src={currentUser.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
@@ -116,7 +118,7 @@ export const TopBar: React.FC = () => {
           </div>
 
           <div className="flex flex-col">
-            <div className="text-xs font-semibold text-white leading-tight truncate max-w-[130px]">
+            <div className="hidden max-w-[130px] truncate text-xs font-semibold leading-tight text-white sm:block">
               {currentUser.full_name}
             </div>
             <div className="flex items-center gap-1 mt-0.5">
