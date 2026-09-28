@@ -84,6 +84,18 @@ export const supabaseService = {
     }
   },
 
+  async getAuthenticatedProfile(): Promise<User | null> {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) return null;
+      const { data, error } = await supabase.from('users').select('*').eq('auth_user_id', authData.user.id).maybeSingle();
+      if (error) throw error;
+      return data as User | null;
+    } catch (err) {
+      return null;
+    }
+  },
+
   // --- INITIAL FULL DATASET FETCH ---
   async fetchInitialDataset(): Promise<{ success: boolean; data?: SupabaseDataset }> {
     try {

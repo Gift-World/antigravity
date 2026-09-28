@@ -16,16 +16,21 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Call Supabase Auth signUp
-    await supabaseService.signUp(email, password, fullName, orgName);
+    setErrorMessage('');
+    const result = await supabaseService.signUp(email, password, fullName, orgName);
 
     setIsLoading(false);
-    navigate('/dashboard');
+    if (!result.success) {
+      setErrorMessage(result.error || 'We could not create your account. Please try again.');
+      return;
+    }
+    navigate('/login');
   };
 
   return (
@@ -92,6 +97,7 @@ export const Register: React.FC = () => {
             >
               Create Organization Account
             </Button>
+            {errorMessage && <div className="rounded-lg border border-ag-red/30 bg-ag-red-dim px-3 py-2 text-xs text-ag-red">{errorMessage}</div>}
           </form>
         </Card>
 

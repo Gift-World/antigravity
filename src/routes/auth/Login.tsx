@@ -22,11 +22,19 @@ export const Login: React.FC = () => {
     setIsLoading(true);
     setErrorMessage('');
 
-    // Attempt real Supabase Auth
     const res = await supabaseService.signIn(email, password);
-
-    // Fallback to demo profile matching if local/offline
-    const match = users.find((u) => u.email === email) || users[0];
+    if (!res.success) {
+      setErrorMessage(res.error || 'We could not sign you in. Check your email and password.');
+      setIsLoading(false);
+      return;
+    }
+    const profile = await supabaseService.getAuthenticatedProfile();
+    const match = profile || users.find((u) => u.email === email);
+    if (!match) {
+      setErrorMessage('Your account is authenticated, but its organisation profile is still being prepared. Please try again in a moment.');
+      setIsLoading(false);
+      return;
+    }
     setCurrentUser(match);
     setIsLoading(false);
     navigate('/dashboard');

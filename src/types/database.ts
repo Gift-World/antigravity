@@ -104,6 +104,8 @@ export interface Organization {
 
 export interface User {
   id: string;
+  /** The Supabase Auth identity, when this is a signed-in production profile. */
+  auth_user_id?: string | null;
   organization_id?: string;
   full_name: string;
   email: string;
